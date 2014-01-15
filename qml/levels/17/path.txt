@@ -1,0 +1,9 @@
+PathEntity {
+	 id: pathEntity
+	 waypoints: [
+		 { x:16, y:48},
+		 { x:208, y:48},
+		 { x:208, y:176},
+		 { x:464, y:176}
+	 ]
+}
