@@ -12,10 +12,10 @@ Stop the deceivingly cute Squabies before they reach your bed in this classic To
 
 Features:
 - Playable cross-platform on iOS, Android, BlackBerry, Symbian and on all desktop platforms
-- Build your own levels with V-Play Level Editor component for easily integration in your own game - http://v-play.net/doc/vplay1-leveleditor/
-- Compare your results to players world-wide across all platforms with integrated V-Play Game Network - http://v-play.net/2013/12/how-to-increase-player-retention-with-v-play-game-network/
-- Collect player history and make statistics of the game data with the V-Play Flurry Plugin - http://v-play.net/doc/vplay-group/#plugin-components/
-- Use clever ads in your game compared to Squaby with Chartboost & AdMob Ad Plugins - http://v-play.net/doc/vplay-group/#plugin-components/ 
+- Build your own levels with [V-Play Level Editor](http://v-play.net/doc/vplay1-leveleditor/) component for easily integration in your own game
+- Compare your results to players world-wide across all platforms with integrated [V-Play Game Network](http://v-play.net/2013/12/how-to-increase-player-retention-with-v-play-game-network/)
+- Collect player history and make statistics of the game data with the [V-Play Flurry Plugin](http://v-play.net/doc/vplay-group/#plugin-components/)
+- Use clever ads in your game compared to Squaby with [Chartboost & AdMob Ad Plugins](http://v-play.net/doc/vplay-group/#plugin-components/)
 - Beautiful comic art styled world 
 - Extend your bed to an invulnerable fortress 
 - Easy gameplay, placing weapons around your bed with drag and drop 
