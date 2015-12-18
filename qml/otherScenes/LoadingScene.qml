@@ -1,5 +1,5 @@
-import QtQuick 1.1
-import VPlay 1.0
+import QtQuick 2.0
+import VPlay 2.0
 
 // is shown at game start and shows the maximum highscore and a button for starting the game
 SquabySceneBase {
@@ -10,14 +10,14 @@ SquabySceneBase {
   signal finishedLoadingAnimation
 
   MultiResolutionImage {
-    source: "../img/bgSubmenu-sd.png"
+    source: "../../assets/img/bgSubmenu.png"
     anchors.centerIn: parent
     property int pixelFormat: 3
   }
 
   MultiResolutionImage {
     id: squabyBg
-    source: "../img/bgMainmenu-sd.png"
+    source: "../../assets/img/bgMainmenu.png"
     anchors.centerIn: parent
   }
 

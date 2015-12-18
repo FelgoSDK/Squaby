@@ -1,6 +1,6 @@
-import QtQuick 1.1
-import VPlay 1.0
-import Box2D 1.0 // needed for Box category
+import QtQuick 2.0
+import VPlay 2.0
+ // needed for Box category
 
 /**
  * This component can be used for all obstacles in the level, e.g. bed, closet, teddy, chocolate, toy bricks, etc.
@@ -42,7 +42,7 @@ EntityBaseDraggable {
 
   // this mouseArea should only be enabled when in levelEditing mode, where the obstacle can be dragged around or be destroyed
   // it should never be enabled for closet & bed, as these should not be selectable but fixed!
-  selectionMouseArea.enabled: scene.state === "levelEditing" && variationType !== "closet" && variationType !== "bed" && variationType !== "closet-door1" && variationType !== "closet-door2"
+  selectionMouseArea.enabled: !scene.itemEditor.visible && scene.state === "levelEditing" && variationType !== "closet" && variationType !== "bed" && variationType !== "closet-door1" && variationType !== "closet-door2"
 
   opacityChangeItemWhileSelected: sprite
 
@@ -52,51 +52,52 @@ EntityBaseDraggable {
     }
   }
 
+  property string spriteSource
+
   Component.onCompleted: {
     var type = variationType;
     if(type==="bed") {
-      sprite.source = "bed.png";
+      spriteSource = "bed.png";
       obstacle.z = 1; // this is needed for QML - z only is useful for siblings, and obstacle is the sibling elment!
       sprite.z = 1;
-      sprite.vertexZ = 2; // this is required for cocos, when the squabies are not in the same spritesheet as the background, because then z-ordering doesnt work!
 
       // this is required, otherwise it would be deleted when a new level is loaded (as removeAllEntities is called there)
       preventFromRemovalFromEntityManager = true
     } else if (type==="closet"){
       obstacle.z = 1;
       sprite.z = 1;
-      sprite.vertexZ = 2; // this is required for cocos, when the squabies are not in the same spritesheet as the background, because then z-ordering doesnt work!
-      sprite.source = "closet-main.png";
+      spriteSource = "closet-main.png";
 
       preventFromRemovalFromEntityManager = true
     } else if (type==="closet-door1"){
-      sprite.source = "closet-door1.png";
+      spriteSource = "closet-door1.png";
       preventFromRemovalFromEntityManager = true
     } else if (type==="closet-door2"){
-      sprite.source = "closet-door2.png";
+      spriteSource = "closet-door2.png";
       preventFromRemovalFromEntityManager = true
     } else if (type==="choco"){
-      sprite.source = "choco-right.png";
+      spriteSource = "choco-right.png";
     } else if (type==="book"){
-      sprite.source = "book-left.png";
+      spriteSource = "book-left.png";
     } else if (type==="pillow"){
-      sprite.source = "pillow.png";
+      spriteSource = "pillow.png";
     } else if (type==="soccerball"){
-      sprite.source = "soccerball-left.png";
+      spriteSource = "soccerball-left.png";
     } else if (type==="teddy"){
-      sprite.source = "teddy.png";
+      spriteSource = "teddy.png";
     } else if (type==="toyblocks"){
-      sprite.source = "toyblocks-left.png";
+      spriteSource = "toyblocks-left.png";
     } else{
       console.debug("WARNING: unknown obstacleType", type);
     }
   }
 
-  SingleSpriteFromFile {
-    id: sprite
-    filename: "../img/all-sd.json"
+  MultiResolutionImage {
+    id: sprite    
     // source gets modified by the type
     z:obstacle.z // forward the z value set to the Obstacle, e.g. for bed & closet this will be set to 1 by default
+
+    source: spriteSource !== "" ? "../../assets/img/backgrounds/" + spriteSource  : spriteSource
 
     // We want to use anchoring for the closet doors so disable translate to center for these
     translateToCenterAnchor: (variationType === "closet" || variationType === "closet-door1" || variationType === "closet-door2") ? false : true

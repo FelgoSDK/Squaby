@@ -1,8 +1,8 @@
-import QtQuick 1.1
-import VPlay 1.0
-import VPlay 1.0
+import QtQuick 2.0
+import VPlay 2.0
+import VPlay 2.0
 // this is only needed to get access to Box2DFixture class, containing the categories
-import Box2D 1.0
+
 
 TowerBase {
     id: nailgun
@@ -18,9 +18,9 @@ TowerBase {
         id: sprite
     }
     
-    Sound {
+    SoundEffectVPlay {
         id: shootEffect
-        source: "../snd/nailgunShoot04.wav"
+        source: "../../assets/snd/nailgunShoot04.wav"
         volume: 0.7
     }
 
@@ -55,7 +55,7 @@ TowerBase {
     }
 
 
-    property date lastShoot: new Date()
+    //property date lastShoot: new Date()
 
     // play the animation and the sound - gets called only if the target is aimed at
     function shoot() {
@@ -67,10 +67,10 @@ TowerBase {
         return;
       }
 
-        var now = new Date();
-        var dt = now-lastShoot;
-        lastShoot = now;
-        console.debug("Nailgun: shoot() called, dt:", dt);
+        //var now = new Date();
+        //var dt = now-lastShoot;
+        //lastShoot = now;
+        //console.debug("Nailgun: shoot() called, dt:", dt);
         sprite.playShootAnimation();
 
         shootEffect.play();

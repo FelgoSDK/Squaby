@@ -1,5 +1,5 @@
-import VPlay 1.0
-import QtQuick 1.1
+import VPlay 2.0
+import QtQuick 2.0
 import "../entities"
 
 // we might use the levelSaved, levelLoaded and levelUnloaded signals here
@@ -8,6 +8,16 @@ LevelBase {
 
   property alias pathEntity: pathEntity
   property alias waypoints: pathEntity.waypoints
+  property string nextLevelId
+  property int difficulty
+  property int maxPlayerLife
+  property int startGold
+  property bool endlessGame
+  property variant towerPermissions// example:
+  //    [
+  //    {towerType: flamethrower, allowed: false},
+  //    ]
+
 
   onLevelAboutToBeSaved: {
     console.debug("SquabyLevelBase: onLevelAboutToBeSaved()")
@@ -29,7 +39,6 @@ LevelBase {
   // just for debugging if the levelData access works
 //  Text {
 //    text: "levelName: " + levelData.levelMetaData.levelName
-//    property real vertexZ: 30
 //    color: "white"
 //    anchors.right: parent.right
 //    anchors.bottom: parent.bottom
@@ -39,6 +48,19 @@ LevelBase {
   // it is just the glue logic that creates the entities that make up a path: PathSection and Waypoint
   PathEntity {
     id: pathEntity
+
+    onWaypointsChanged: {
+      //console.debug("SquabyLevelBase: Notify all squabies about the new waypoints!")
+      // Notify all squabies about the waypoint changes so they update their pathmovement
+      var pooledSquabies = entityManager.getPooledEntityArrayByType("squaby")
+      for(var ii=0; ii<pooledSquabies.length; ++ii) {
+        pooledSquabies[ii].movementAnimationNeedUpdate = true
+      }
+      var squabies = entityManager.getEntityArrayByType("squaby")
+      for(var ii=0; ii<squabies.length; ++ii) {
+        squabies[ii].movementAnimationNeedUpdate = true
+      }
+    }
 
     // example for waypoints:
 //    waypoints: [
@@ -53,8 +75,8 @@ LevelBase {
   property int pauseBetweenWavesDecrementPerWave: 300
 
   // this guarantees that at high wave count the delay never gets lower than this number
-  property int minimumSquabyDelay: 2500 // this setting has high impact on performance - if set too low, a heap of squabies gets created which might cause the application to run slowly on slow devices!
-  property int minimumPauseBetweenWaves: 5000
+  property int minimumSquabyDelay: 500 // this setting has high impact on performance - if set too low, a heap of squabies gets created which might cause the application to run slowly on slow devices!
+  property int minimumPauseBetweenWaves: 500
 
   // this gets used by SquabyCreator
   property variant waves

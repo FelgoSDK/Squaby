@@ -1,159 +1,130 @@
-import QtQuick 1.1
-import VPlay 1.0
+import QtQuick 2.0
+import VPlay 2.0
 
 
-SpriteSequence {    
+Item {
+  id: rootSprite
+  rotation: -90
+
+  property alias squabySprite: squabySprite
+  signal animationFinished
+
+  SpriteSequenceVPlay {
     // if goalSprite is not set, the first Sprite is used
     id: squabySprite
     goalSprite: "walk"
 
-    // ATTENTION: initialize the spriteSheetSource with an empty string, because switching of spriteSehetSource is not supported at the moment
-    //spriteSheetSource: "../img/squafurY.png"
+    anchors.centerIn: parent
 
-    rotation: -90
+    // running gets set to true by default
+    // we set it to false in Squaby.onMovedToPool() and enable it in onUsedFromPool
 
-    // by default, use the variationType of the parent
-    property string variationType: parent.variationType
+    spriteSheetSource: "../../assets/img/spritesheets/squ" + squabySprite.variationTypeNumber + ".png"
 
-    // changing the variationType at runtime is not supported (this would lead to a change of the used spritesheet in SpriteBatchNode, so do not support changing after creation!
-//    onVariationTypeChanged: {
-//        setSpriteSheetSourceBasedOnVariationType();
-//    }
-
-    Component.onCompleted: {
-        setSpriteSheetSourceBasedOnVariationType();
-    }
-
-    function setSpriteSheetSourceBasedOnVariationType() {
-
-        // ATTENTION: this is a costly operation! it takes mean time 23ms for this function!
-
-        console.log("variationType property used for image source: " + variationType);
-
-      var tempSpriteSheetSource;
-
-        if(variationType === "squabyYellow")
-            tempSpriteSheetSource = "../img/squ1-sd.png"
-        else if(variationType === "squabyOrange")
-            tempSpriteSheetSource = "../img/squ2-sd.png"
-        else if(variationType === "squabyRed")
-            tempSpriteSheetSource = "../img/squ3-sd.png"        
-        else if(variationType === "squabyGreen")
-            tempSpriteSheetSource = "../img/squ4-sd.png"
-        // the "blue" one acutally is light grey, the grey one is dark grey
-        else if(variationType === "squabyBlue")
-            tempSpriteSheetSource = "../img/squ5-sd.png"
-        else if(variationType === "squabyGrey")
-            tempSpriteSheetSource = "../img/squ6-sd.png"
-        else
-            console.log("WARNING: undefined variationType, not known which sprite to use! " + variationType);
-
-        //fileChooser.modifyFilenameBasedOnSceneScale(tempSpriteSheetSource)
-        fileChooser.filename = tempSpriteSheetSource
-    }
-
-    //transformOrigin: Item.TopLeft - doesnt help
-    // the rotation is wrong!!! would be the same issue with SingleSpriteFromFile probably!!!
-    //translateToCenterAnchor: false
-    //__internalScaleFactorForMultiResImages: 0.5
-
-    ContentScaleFileChooser {
-      id: fileChooser
-
-      //filename: squabySprite.spriteSheetSource
-
-      onModifiedFilenameChanged: {
-        squabySprite.spriteSheetSource = modifiedFilename
-
-        // this must be set, otherwise the rotation would not be centered
-        squabySprite.scale = internalScaleFactorForMultiResImages
-
-        //squabySprite.width = squabySprite.width*internalScaleFactorForMultiResImages
-        //squabySprite.height = squabySprite.height*internalScaleFactorForMultiResImages
-
-        // make the frames bigger - internalScaleFactor is 1, 0.5 and 0.25
-        squabySprite.contentScaledFrameWidth = 32/internalScaleFactorForMultiResImages
-        squabySprite.contentScaledFrameHeight = 32/internalScaleFactorForMultiResImages
-
-        squabyContentScaleFactor = internalScaleFactorForMultiResImages
-
+    onCurrentSpriteObjectChanged: {
+      if(currentSpriteObject === dieAnimationFinished) {
+        rootSprite.animationFinished()
       }
     }
+    // animationFinished doesnt exist any more, instead detect a change of animations with currentSpriteObjectChanged
+//    onAnimationFinished: rootSprite.animationFinished()
 
-    // gets set in onModifiedFilenameChanged
-    property int contentScaledFrameWidth//: 32*2
-    property int contentScaledFrameHeight//: 32*2
-
-    // this is used by the healthbar sprite
-    property real squabyContentScaleFactor
-
-
-
-    Sprite {
-        name: "walk"
-        frameWidth: contentScaledFrameWidth
-        frameHeight: contentScaledFrameHeight
-        frameCount: 4
-        startFrameColumn: 2
-        frameRate: 20
-        // this must not be set to true, because it gets set to true by the SpriteSequence class!
-        //running: true
-        // optionally provide a name to which animation it should be changed after this is finished
-        //to: "whirl"
+    // by default, use the variationType of the parent
+    property string variationType: parent.parent.variationType
+    property int variationTypeNumber: 1
+    onVariationTypeChanged: {
+      if(variationType === "squabyYellow")
+        variationTypeNumber = 1
+      else if(variationType === "squabyOrange")
+        variationTypeNumber = 2
+      else if(variationType === "squabyRed")
+        variationTypeNumber = 3
+      else if(variationType === "squabyGreen")
+        variationTypeNumber = 4
+      else if(variationType === "squabyBlue")
+        variationTypeNumber = 5
+      else if(variationType === "squabyGrey")
+        variationTypeNumber = 6
     }
-    Sprite {
-        name: "whirl"
-        frameWidth: contentScaledFrameWidth
-        frameHeight: contentScaledFrameHeight
-        frameCount: 2
-        startFrameColumn: 14
-        frameRate: 20
-        //loop: true // loop must be set to true explicitly if to would be set, otherwise the Sprite wont loop when a to-property is set!
-        // for this squabySprite, jumpTo("die") is called from Squaby.qml, so no to-property is useful!
-        //to: "die"
+
+    SpriteVPlay {
+      name: "walk"
+      frameWidth: 32
+      frameHeight: 32
+      frameCount: 4
+      startFrameColumn: 1
+      frameRate: 20
+//      frameNames: [
+//        "squ"+squabySprite.variationTypeNumber+"-walk-1.png",
+//        "squ"+squabySprite.variationTypeNumber+"-walk-2.png",
+//        "squ"+squabySprite.variationTypeNumber+"-walk-3.png",
+//        "squ"+squabySprite.variationTypeNumber+"-walk-4.png",
+//      ]
+    }
+    SpriteVPlay {
+      name: "whirl"
+      frameWidth: 32
+      frameHeight: 32
+      startFrameColumn: 14
+//      frameNames: [
+//        "squ"+squabySprite.variationTypeNumber+"-whirl-1.png",
+//        "squ"+squabySprite.variationTypeNumber+"-whirl-2.png",
+//        "squ"+squabySprite.variationTypeNumber+"-whirl-3.png",
+//        "squ"+squabySprite.variationTypeNumber+"-whirl-4.png",
+//      ]
+      frameCount: 2
+      frameRate: 20
     }
     // the jump animation could be used when the squaby jumps under the bed - it is not used atm, because it is not good visible
-    Sprite {
-        name: "jump"
-        frameWidth: contentScaledFrameWidth
-        frameHeight: contentScaledFrameHeight
-        frameCount: 4
-        startFrameColumn: 5
-        frameRate: 10
-        // for testing the loop and repeatCount combination, this animation should be played 5 times
-//        loop: false
-//        repeatCount: 5
+    SpriteVPlay {
+      name: "jump"
+      frameWidth: 32
+      frameHeight: 32
+      startFrameColumn: 5
+//      frameNames: [
+//        "squ"+squabySprite.variationTypeNumber+"-jump-1.png",
+//        "squ"+squabySprite.variationTypeNumber+"-jump-2.png",
+//        "squ"+squabySprite.variationTypeNumber+"-jump-3.png",
+//        "squ"+squabySprite.variationTypeNumber+"-jump-4.png",
+//      ]
+      frameCount: 4
+      frameRate: 10
     }
-    Sprite {
-        name: "die"
-        frameWidth: contentScaledFrameWidth
-        frameHeight: contentScaledFrameHeight
-        frameCount: 4
-        startFrameColumn: 9
-        loop: false
-        frameRate: 10
-        restoreOriginalFrame: false
-        //to: "walk" // just for testing, after the die animation the squaby should get destroyed
-        // if no repeatCount is specified, it defaults to a single repetition!
-        //repeatCount: 2 // just for testing, should be 1
+    // this is V-Play 1 code - the restoreOriginalFrame property is not supported yet
+//    SpriteVPlay {
+//      name: "die"
+//      frameNames: [
+//        "squ"+squabySprite.variationTypeNumber+"-die-1.png",
+//        "squ"+squabySprite.variationTypeNumber+"-die-2.png",
+//        "squ"+squabySprite.variationTypeNumber+"-die-3.png",
+//        "squ"+squabySprite.variationTypeNumber+"-die-4.png",
+//      ]
+//      loop: false
+//      frameRate: 10
+//      restoreOriginalFrame: false
+//    }
+
+    SpriteVPlay {
+      name: "die"
+      frameWidth: 32
+      frameHeight: 32
+      frameCount: 3
+      startFrameColumn: 10
+      frameRate: 10
+      // play die animation once and then stay at the last frame
+      to: {"dieLastFrame":1}
+    }
+    SpriteVPlay {
+      // this is required to be able to detect the end of the die animation
+      id: dieAnimationFinished
+      name: "dieLastFrame"
+      startFrameColumn: 12
+      frameWidth: 32
+      frameHeight: 32
+      duration: 10000 // performance saver
+      // frameCount is set to 1 by default
+      to: {"dieLastFrame":1}
     }
 
-
+  }
 }
-
-
-////// this may be used to test performance without sprites, so without animation timers and clipping
-//Item {
-//    width: 32
-//    height: 32
-//    x:-width/2
-//    y:-height/2
-//}
-
-// this tests the performance impact of timers - if a SingleSpriteFromSpriteSheet is used, the timer's running flag is set to false
-//SingleSpriteFromSpriteSheet {
-//    frameWidth: 32
-//    frameHeight: 32
-//    startFrameColumn: 3
-//    spriteSheetSource: "../img/squafurY.png"
-//}

@@ -1,5 +1,5 @@
-import QtQuick 1.1
-import VPlay 1.0
+import QtQuick 2.0
+import VPlay 2.0
 import "../gameScene/hud" // for SingleSquabySprite
 
 // this may become an EntityBaseDraggable, when the position of it should be changable, and it should be createable at runtime from the building menu!
@@ -27,7 +27,7 @@ EntityBase {
 
 //    waypoint.visible = false
 //    sprite.visible = false
-//    sprite.singleSprite.visible = false
+//    sprite.visible = false
 
 //    waypoint.opacity = 0.5
 
@@ -40,11 +40,11 @@ EntityBase {
 
     // this is required, otherwise the transform would be the old!
     // otherwise it will shortly flicker when it gets visible, when used for pooling!
-    updateItemPositionAndRotationImmediately()
+    //updateItemPositionAndRotationImmediately()
 
     // see bug testinga bove
 //    sprite.visible = true
-//    sprite.singleSprite.visible = true
+//    sprite.visible = true
 //    waypoint.x = 100
 //    waypoint.y = 100
   }
@@ -57,7 +57,7 @@ EntityBase {
     id: sprite
 
     translateToCenterAnchor: true
-    source: "steps-4-corner-from-left-to-top.png"
+    source: "../../assets/img/steps/steps-4-corner-from-left-to-top.png"
   }
 
   // for debugging only
@@ -91,7 +91,7 @@ EntityBase {
     var fromBottom;
 
     // initialize it with false, it might have been set to true before when used from pool!
-    sprite.singleSprite.mirrorX = false;
+    sprite.mirrorX = false;
 
 
 
@@ -127,14 +127,14 @@ EntityBase {
     } else if(fromTop && toRight) {
       waypoint.rotation = 90;
     } else if(fromRight && toBottom) {
-      // this is problematic!? dont know why, but this waypoint when placed on the right side of the screen, is never set to invisible!?!
+      // this is problematic!? don't know why, but this waypoint when placed on the right side of the screen, is never set to invisible!?!
       // that only happens when rotation is set to 180
       waypoint.rotation = 180;
     } else if(fromBottom && toLeft) {
       waypoint.rotation = 270;
     } else {
       // now the mirrored ones start!
-      sprite.singleSprite.mirrorX = true;
+      sprite.mirrorX = true;
     }
 
     if(fromRight && toTop) {
@@ -145,7 +145,7 @@ EntityBase {
       waypoint.rotation = 180;
     } else if(fromTop && toLeft) {
       waypoint.rotation = 270;
-    }    
+    }
 
   }
 

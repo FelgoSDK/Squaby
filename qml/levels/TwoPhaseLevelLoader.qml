@@ -1,5 +1,5 @@
-import QtQuick 1.1
-import VPlay 1.0
+import QtQuick 2.0
+import VPlay 2.0
 
 /*!
   This component is used to load the level in 2 phases: first the window state is set to loading so the LoadingScene appears.
@@ -39,26 +39,39 @@ Item {
 
     console.debug("TwoPhaseLevelLoader: startLoadingLevel() called, createNewLevel:", createNewLevel, ", levelData:", JSON.stringify(levelMetaData))
 
+    if(scene.state !== "levelEditing" && !levelStore.noAdsGood.purchased) {
+      chartboostView.showAdvertIfAvailable()
+    }
+
     // if __toLoadLevelData was already set, this means that the game was started at least once
     if(__toLoadLevelData &&  __createNewLevel === createNewLevel) {
 
       var levelDataStayedTheSame = true
       for(var propName in levelMetaData) {
-        // if any of the properties doesnt match, we have a different level
+        // if any of the properties doesn't match, we have a different level
         if(levelMetaData[propName] !== __toLoadLevelData[propName]) {
           levelDataStayedTheSame = false
           break;
         }
       }
 
-      if(levelDataStayedTheSame) {
+      // Do not test for "new level" edition, because if the last level was created and saved without changing anything, there should still be a new level created!
+      if(levelDataStayedTheSame && !createdNewLevel && !reloadLevel) {
         // but if the entities get removed at leaving the scene as it is now, we could switch to game state directly!
         // so this allows faster loading, if the same level was selected (no loading scene will be displayed)
         // skip the loading scene below
         console.debug("TwoPhaseLevelLoader: old and new levelData are the same, thus skip the loading scene")
         // this simulates we are finished loading the level
         levelEditor.loadLevelFinished()
+        // exit scene
+        scene.exitScene()
+        // enter scene again
+        scene.enterScene()
         return;
+      }
+
+      if(reloadLevel) {
+        reloadLevel = false
       }
 
     }
@@ -91,7 +104,7 @@ Item {
     id: loadLevelDelayedTimer
     // on MeeGo, the delay needs to be longer to avoid the "Application not responding" message
     // it also helps on other platforms to set a delay here, because then the scaling of the SquabyScene is correct initially - on desktops though it is not required as they are usually very fast
-    interval: system.desktopPlatform ? 0 : 2000
+    interval: system.desktopPlatform ? 0 : (system.Meego ? 2000 : 50)
 
     onTriggered: {
 

@@ -1,19 +1,19 @@
-import QtQuick 1.1
-import VPlay 1.0
-
+import QtQuick 2.0
+import VPlay 2.0
+import "../common/"
 // This scene is only displayed if there is no gamecenter connection
 SquabySceneBase {
   id: creditsScene
 
   state: "exited"
 
-  onBackPressed: {
+  onBackButtonPressed: {
     creditsScene.state = "exited"
     sceneChangeTimer.start()
   }
 
   MultiResolutionImage {
-    source: "../img/bgSubmenu-sd.png"
+    source: "../../assets/img/bgSubmenu.png"
     anchors.centerIn: parent
     property int pixelFormat: 3
   }
@@ -25,7 +25,7 @@ SquabySceneBase {
     spacing: 10
 
     Text {
-      text: qsTr("V-Play Team:\nAlex Leutgoeb\nChristian Feldbacher")
+      text: qsTr("V-Play Team:\nAlex Leutgoeb\nChristian Feldbacher\nDavid Berger")
       color: "white"
       font.family: hudFont.name
       font.pixelSize: 13
@@ -47,7 +47,7 @@ SquabySceneBase {
       }
 
       Image {
-        source: "../img/woho-logo.png"
+        source: "../../assets/img/woho-logo.png"
         height: 40
         fillMode: Image.PreserveAspectFit
 
@@ -83,31 +83,34 @@ SquabySceneBase {
   }
 
 
-  MainMenuButton {
-    id: b1
-
-    text: qsTr("Back")
-
+  Item {
+    id: button
+    height: b1.height
+    anchors.left: parent.gameWindowAnchorItem.left
     anchors.bottom: gameWindowAnchorItem.bottom
     anchors.bottomMargin: 30
 
-    onClicked: {
-      console.debug(text, " button clicked")
+    MainMenuButton {
+      id: b1
 
-      creditsScene.state = "exited"
-      sceneChangeTimer.start()
-    }
+      text: qsTr("Back")
 
-    Timer {
-      id: sceneChangeTimer
-      interval: b1.slideDuration
-      onTriggered: window.state = "main"
+      onClicked: {
+        creditsScene.state = "exited"
+        sceneChangeTimer.start()
+      }
+
+      Timer {
+        id: sceneChangeTimer
+        interval: b1.slideDuration
+        onTriggered: window.state = "main"
+      }
     }
   }
 
   Column {
     id: logoColumn
-    anchors.top: b1.top
+    anchors.top: button.top
     anchors.topMargin: -8
     anchors.left: rightColumn.left
     spacing: 8
@@ -120,7 +123,7 @@ SquabySceneBase {
     }
 
     Image {
-      source: "../img/vplay.png"
+      source: "../../assets/img/vplay.png"
       // the image size is bigger (for hd2 image), so only a single image no multiresimage can be used
       // this scene is not performance sensitive anyway!
       fillMode: Image.PreserveAspectFit
@@ -128,7 +131,7 @@ SquabySceneBase {
 
       MouseArea {
         anchors.fill: parent
-        onClicked: nativeUtils.openUrl("http://v-play.net");
+        onClicked: nativeUtils.openUrl("http://v-play.net/showcases/?utm_medium=game&utm_source=squaby&utm_campaign=squaby#squaby");
       }
     }
   }

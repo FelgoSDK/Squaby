@@ -1,15 +1,19 @@
-import QtQuick 1.1
-import VPlay 1.0
+import QtQuick 2.0
+import VPlay 2.0
 // this is only needed to get access to Box2DFixture class, containing the categories
-import Box2D 1.0
+
 
 //EntityBase {
 EntityBaseDraggable {
     id: towerBase
     // the entityType property must be set by the derived concrete towers!
 
+    // it must be above the path and obstacles
+    z: 2
+
     //property variant targetEntity: null
-    property alias targetEntity: targetEntityConnection.target
+    // NOTE: we must not use targetEntityConnection.target any more, because initially that points to the towerBase entity which leads to an error in Qt5!
+    property QtObject targetEntity: null
 
     // can be used to disable the collider temporarily, e.g. for turbine
     property alias fireRangeCollider: collider
@@ -17,11 +21,12 @@ EntityBaseDraggable {
     // this is the radius the nailgun has at firing, set the default value to 4 squares(4*16=64), because the nailgun itself is 2 squares, and 2 further away it should collide
     property real colliderRadius: 4*scene.gridSize // the default radius (not upgraded) is 64 (4 grids)
 
+    inLevelEditingMode: true
 
     // it is important that this is not set smaller than the animation time of nailgun! otherwise the sprite animation can not keep up
     // set the default shoot rate to 600ms, if upgraded to 400
     // this is only needed for nailgun & turbine, for flamethrower it is unused, and a custom upgrade damgePerSecond is used!
-    // thus dont set a default value here, but set the explicit value in Nailgun.qml
+    // thus don't set a default value here, but set the explicit value in Nailgun.qml
     property int shootDelayInMilliSeconds//: 600
 
     // these get set per tower, are the logic properties and could be put into an own component!?
@@ -50,7 +55,7 @@ EntityBaseDraggable {
     signal towerUpgraded(string upgradeType, variant upgradeData)
 
 
-    // anchoring doesnt work, because the collider is not centered in the entity!
+    // anchoring doesn't work, because the collider is not centered in the entity!
     //selectionMouseArea.anchors.fill: foundationCollider
     selectionMouseArea.width: foundationCollider.width
     selectionMouseArea.height: foundationCollider.height
@@ -69,6 +74,9 @@ EntityBaseDraggable {
     // the Rectangle shouldnt be used for towers, because the range circle gets colored green or red instead
     showRectangleWhenBuildingNotAllowed: false
 
+    // Flag only used in performance tests (false means, aimingAtTarget signal is not emitted)
+    property bool emitAimingAtTargetSignal: true
+
     onEntityClicked: {
         console.debug("tower clicked");
         towerSelected();
@@ -82,7 +90,7 @@ EntityBaseDraggable {
     Connections {
         id: targetEntityConnection
         // this gets set when a squaby collides with the tower
-        target: null
+        target: targetEntity
 //        ignoreUnknownSignals: true
 
         // why is onDestroyed not known?
@@ -102,7 +110,7 @@ EntityBaseDraggable {
             removeTarget();
         }
 
-        // does complain that targetChanged does not exist, which is reasonable because for the target object it really doesnt exist!?
+        // does complain that targetChanged does not exist, which is reasonable because for the target object it really doesn't exist!?
         // error message: QML Connections: Cannot assign to non-existent property "onTargetChanged"
 //        onTargetChanged: {
 //            console.debug("target changed to:", target);
@@ -111,7 +119,7 @@ EntityBaseDraggable {
 
 //    Connections {
 //        target: targetEntityConnection
-//        // this doesnt work!? error message: ReferenceError: Can't find variable: target
+//        // this doesn't work!? error message: ReferenceError: Can't find variable: target
 //        onTargetChanged: console.debug("target changed to:", target);
 //    }
 
@@ -121,6 +129,8 @@ EntityBaseDraggable {
         radius: colliderRadius // this is the radius the nailgun has at firing, set the default value to 4 squares, because the nailgun itself is 2 squares, and 2 further away it should collide
 //        width: 64
 //        height: 64
+        x: -radius
+        y: -radius
 
         // this is a performance optimization (position of body is not propagated back to entity) and sets the sensor-flag to true
         // by setting collisionTestingOnlyMode to true, body.sleepingAllowed and fixture.isSensor get modified!
@@ -131,8 +141,8 @@ EntityBaseDraggable {
 //        body.sleepingAllowed: false
 //        fixture.sensor: true
 
-        // set a categories, but dont set collidesWith, because when a tower is dragged into the playground, the towers should collide with each other!
-        // category 2 are the towers, so squabies dont collide with each other, but with towers
+        // set a categories, but don't set collidesWith, because when a tower is dragged into the playground, the towers should collide with each other!
+        // category 2 are the towers, so squabies don't collide with each other, but with towers
         categories: Box.Category2
         // towers should only collide with squabies, not with other towers!
         fixture.collidesWith: Box.Category1
@@ -149,9 +159,9 @@ EntityBaseDraggable {
                 return;
 
             var fixture = other;
-            var body = other.parent;
-            var component = body.parent;
-            var entity = component.owningEntity;
+            var body = other.getBody();
+            //var component = body.parent;
+            var entity = body.target;
             //var collidedEntityType = entity.entityType;
 
             //console.debug("nailgun beginContact with: ", other, body, component);
@@ -159,7 +169,7 @@ EntityBaseDraggable {
             //console.debug("is collided entity ofType(squaby):", entity.isOfType("squaby"));
 
             // look here for information about connectings signals in QML: https://qt-project.org/doc/qt-4.8/qmlevents.html
-            // this doesnt work with the default destroyed-signal! only with signals defined in QML!
+            // this doesn't work with the default destroyed-signal! only with signals defined in QML!
             //entity.destroyed.connect(targetDestroyed);
             // -> to solve this issue, a custom signal entityDestroyed was created for EntityBase!
             // with this entityDestroyed is called whenever the target gets destroyed! this is the same like done in the Connection element! so use the Connections-approach
@@ -170,7 +180,7 @@ EntityBaseDraggable {
 
         // only receive the contactChanged signals, when there is no target assigned (so when the target was removed once it was inside)
         Connections {
-            target: targetEntity ? null : collider.fixture
+          target: targetEntity ? null : collider.fixture
             onContactChanged: {
                 if(targetEntity) {
                     // this IS gonna be called! not clear yet when exactly! probably sometime in between removeTarget()
@@ -179,57 +189,13 @@ EntityBaseDraggable {
                 }
 
                 console.debug("target of tower got removed, set to new one...")
-                var entity = other.parent.parent.owningEntity;
+                var entity = other.getBody().target;
                 setTarget(entity);
             }
         }
 
-        // when the nailgun's target gets removed, it should steer towards the next target, but the beginContact-signal was already received if the new target is within range!
-        // maybe solve that issue more efficiently with the Connections element!? only enable onContactChanged if the target was removed!?
-        // or another approach would be to store the collided objects in a list, and also remove it, but then all destroyed-signals would need to be connected as the target couls also be removed by other towers!
-/*        fixture.onContactChanged: {
-            // only use contactChanged when there is no target (this means the entity was removed before)
-            // however, calling onContactChanged is expensive as it happens so often!
-            if(targetEntity)
-                return;
-
-            console.debug("target of tower got removed, set to new one...")
-
-//            var fixture = other;
-//            var body = other.parent;
-//            var component = body.parent;
-//            var entity = component.owningEntity;
-            var entity = other.parent.parent.owningEntity;
-            setTarget(entity);
-        }
-        */
-
-        // this is irrelevant, although in here the nailgun could be rotated towards the target
-        // ATTENTION: onContactChanged is called for every colliding fixture, so this is not a good approach to update the steering here!
-        // thus use a timer instead of in here!
-//        onContactChanged: {
-//            // this gets called frequenty, so dont output this
-//            //console.debug("nailgun contactChanged");
-
-//            // ATTENTION: contactChanged may also be called AFTER endContact was received!
-//            // that migh happen when the boundingBoxes collide, but not the real circle collider fixtures!
-//            // so to avoid setting the target position when no target is assigned, add the if(targetEntity) check
-
-//            if(targetEntity)
-//                // in here, the nailgun is rotated towards the squaby
-//                steerToPointBehavior.update();
-//        }
-
         fixture.onEndContact: {
-            // this gets called frequenty, so dont output this
-            //console.debug("nailgun endContact");
-//            var fixture = other;
-//            var body = other.parent;
-//            var component = body.parent;
-//            var entity = component.owningEntity;
-            //var collidedEntityType = entity.entityType;
-
-            var entity = other.parent.parent.owningEntity;
+            var entity = other.getBody().target;
 
             // only remove the target, if this was the one assigned before in onBeginContact
             if(entity === targetEntity)
@@ -255,7 +221,7 @@ EntityBaseDraggable {
     }
 
 /*
-    dont use this approach any more, because the MoveToPointHelper in C++ is faster and easier to use
+    don't use this approach any more, because the MoveToPointHelper in C++ is faster and easier to use
     MoveToPointHelper {
         id: steerToPointBehavior
         // use the target from targetEntityConnection, which is 0 if not current target is active
@@ -286,7 +252,9 @@ EntityBaseDraggable {
         id: moveToPointHelper
         targetObject: targetEntity
 
-        distanceToTargetThreshold: 20
+        // distanceToTargetThreshold is not used for the towers - they only need to rotate left/right not move forward/backward
+        // so it doesnt matter what value is set for that - the targetReached() signal is emitted if the distanceToTarget is smaller than distanceToTargetThreshold
+        //distanceToTargetThreshold: 20
         allowSteerForward: false
 
         property real aimingAngleThreshold: 10
@@ -297,7 +265,9 @@ EntityBaseDraggable {
             console.debug("TowerBase: aimintAtTarget changed to", aimingAtTarget);
 
             // emit the towerBase signal
-            towerBase.aimingAtTargetChanged(aimingAtTarget);
+            if(emitAimingAtTargetSignal) {
+              towerBase.aimingAtTargetChanged(aimingAtTarget);
+            }
         }
 
         onTargetObjectChanged: {
@@ -316,6 +286,7 @@ EntityBaseDraggable {
                 aimingAtTarget = false;
             }
         }
+        //onOutputXAxisChanged: console.debug("outputXAxis changed to", outputXAxis)
     }
 
     MovementAnimation {
@@ -419,11 +390,18 @@ EntityBaseDraggable {
         // these are the common upgrade types for all 3 towers - repair is implemented in the turbine only!
         if(upgradeType === "sell") {
 
+          if(!scene.tutorials.nextAction("upgradeButton","sold"))
+            return
+
           // this is interesting for analytics!
           if(entityType === "nailgun")
             player.nailgunsDestroyed++;
           else if(entityType === "flamethrower")
             player.flamethrowersDestroyed++;
+          else if(entityType === "taser")
+            player.tasersDestroyed++;
+          else if(entityType === "tesla")
+            player.teslasDestroyed++;
           else if(entityType === "turbine")
             player.turbinesDestroyed++;
           flurry.logEvent("Tower.Sold", {"towerType": entityType, "playerGold": player.gold, "wave": player.wave});

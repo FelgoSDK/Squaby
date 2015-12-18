@@ -1,5 +1,5 @@
-import QtQuick 1.1
-import VPlay 1.0 // for System
+import QtQuick 2.0
+import VPlay 2.0 // for System
 import "../entities"
 import "../balancing"
 
@@ -23,6 +23,13 @@ Item {
   // an alias is not possible here, because item is null in the beginning!
   property variant pathEntity: levelLoader.loadedLevel ? levelLoader.loadedLevel.pathEntity : null
   property variant waves: levelLoader.loadedLevel ? levelLoader.loadedLevel.waves : null
+  property variant nextLevelId: levelLoader.loadedLevel ? levelLoader.loadedLevel.nextLevelId : null
+
+  property variant difficulty: levelLoader.loadedLevel ? levelLoader.loadedLevel.difficulty : null
+  property variant maxPlayerLife: levelLoader.loadedLevel ? levelLoader.loadedLevel.maxPlayerLife : null
+  property variant startGold: levelLoader.loadedLevel ? levelLoader.loadedLevel.startGold : null
+  property variant endlessGame: levelLoader.loadedLevel ? levelLoader.loadedLevel.endlessGame : null
+  property variant towerPermissions: levelLoader.loadedLevel ? levelLoader.loadedLevel.towerPermissions : null
 
   property alias loadedLevel: levelLoader.loadedLevel
 
@@ -31,7 +38,7 @@ Item {
   LevelLoader {
     id: levelLoader
     // by default, load the first level
-// dont set anything by default! that may be set in levelLoader.qml if wanted to load a level initially!
+// don't set anything by default! that may be set in levelLoader.qml if wanted to load a level initially!
 //    levelSource: "01/Level01.qml"
 
 //    onSourceChanged: {
@@ -44,8 +51,6 @@ Item {
 
     onLoaded: {
 //      console.debug("LevelLoader: loaded level with source", source)
-//      // NOTE: it is very important to only call this for the top-most item that got loaded now, not on an entity somewhere in between
-//      window.loadItemWithCocos(loadedLevel)
 
       console.debug("________________SquabyLevelContainer: loaded with LevelLoader:", levelSource)
 
@@ -62,7 +67,7 @@ Item {
   // creates squabies that get removed immediately, so they can be used for the entity pool
   function preCreateEntitiesForPool() {
 
-    // dont pool entities on Sym & meego - creation takes very long on these platforms
+    // don't pool entities on Sym & meego - creation takes very long on these platforms
     if(system.isPlatform(System.Meego) || system.isPlatform(System.Symbian))
       return;
 
@@ -136,36 +141,38 @@ Item {
 
 
 
-  // this is a dev-only testing area for cheating (get more gold)
+  // this is a dev-only testing area for cheating (get more gold) or performance tests create squabies
   MouseArea {        
-    enabled: developerBuild
+    enabled: cheatMoneyEnabled
     anchors.fill: closet
     onClicked: {
+      // only in game mode, not in editor
+      if(scene.state === "levelEditing")
+        return
 
-      console.debug("cheater!")
-
-      // for GDC demoing, increase the gold by 100 when clicking on the bed to better demonstrate the different towers!
       player.gold += 100
+    }
+  }
+  MouseArea {
+    enabled: developerBuild
+    x: bed.x - bed.width/2
+    y: bed.y - bed.height/2
+    width: bed.width
+    height: bed.height
+    onClicked: {
+      // only in game mode, not in editor
+      if(scene.state === "levelEditing")
+        return
 
       // this is just for debugging: allow to add a squaby by clicking the closet
       // this would create a squaby with the default settings
       //entityManager.createEntity(Qt.resolvedUrl("entities/Squaby.qml"));
-//      if(createYellowSquaby)
-//        entityManager.createEntityFromComponent(sy);
-//      else
-//        entityManager.createEntityFromComponent(sgrey);
+      if(createYellowSquaby)
+        entityManager.createEntityFromComponent(sy);
+      else
+        entityManager.createEntityFromComponent(sgrey);
     }
   }
-
-  // this state may be entered for performance testing without the obstacles
-  states: State {
-    name: "hideObstacles"
-    PropertyChanges { target: levelLoader; visible: false }
-    PropertyChanges { target: bed; visible: false }
-    PropertyChanges { target: closet; visible: false }
-    PropertyChanges { target: pathEntity; visible: false }
-  }
-
 
 
   Component.onCompleted: {

@@ -1,7 +1,8 @@
-import QtQuick 1.1
-import VPlay 1.0
+import QtQuick 2.0
+import QtMultimedia 5.0 // needed for SoundEffect.Infinite
+import VPlay 2.0
 // this is only needed to get access to Box2DFixture class, containing the categories
-import Box2D 1.0
+
 import "../particles" // for FireParticles
 
 TowerBase {
@@ -11,6 +12,45 @@ TowerBase {
     /// The squaby health component gets reduced by that amount. This value can be upgraded with the second upgrade (tho 2 towers, so the flamethrower applies more damage).
     //*0.001*100 // as an optimization, multiply it with 0.001 to avoid having to multiply it every shoot()
     property real flameAreaDamagePerSecond: level.balancingSettings.flamethrower.flameAreaDamagePerSecond
+    // flag created to start the particle effects also from outside for performance tests.
+    property bool running: false
+    onRunningChanged: {
+      if(running) {
+
+        shootTimer.running = true;
+
+        // starts the looping audio effect
+        shootEffect.play();
+
+        // Start particles
+        if (__currentUpgradeLevels.damagePerSecond > 0) {
+          if(currentParticles < maximumParticles) {
+            currentParticles++
+            fireParticle2.start();
+          }
+        }
+        if(currentParticles < maximumParticles) {
+          currentParticles++
+          fireParticle1.start();
+        }
+      } else {
+        // stop the looping audio effect
+        shootEffect.stop();
+
+        // Stop particle effects
+        if (__currentUpgradeLevels.damagePerSecond > 0) {
+          if(fireParticle2.running) {
+            currentParticles--
+            fireParticle2.stop();
+          }
+        }
+        if(fireParticle1.running) {
+          currentParticles--
+          fireParticle1.stop();
+        }
+        shootTimer.running = false;
+      }
+    }
 
     shootDelayInMilliSeconds: level.balancingSettings.flamethrower.shootDelayInMilliSeconds
     cost: level.balancingSettings.flamethrower.cost
@@ -27,40 +67,37 @@ TowerBase {
     }
 
     FlamethrowerSprite {
-        id: sprite
+      id: sprite
     }
 
-    Sound {
-        //SoundEffect {
+    SoundEffectVPlay {
         id: shootEffect
-        source: "../snd/flamethrowerFire01.wav"
+        source: "../../assets/snd/flamethrowerFire01.wav"
         // the sound effect should looop when a squaby is aimed at
         loops: SoundEffect.Infinite
     }
 
-    // Particles {
-    FireParticles {
+    ParticleVPlay {
         id: fireParticle1
-        emissionRate: 35
-        sourcePositiony: 0
-        positionType: ParticleSystem.Relative
+        fileName: "../particles/FireParticle.json"
+        y: 0
+        x: 15
     }
 
-    // Particles {
-    FireParticles {
+    ParticleVPlay {
         id: fireParticle2
-        emissionRate: 35
-        sourcePositiony: -5
-        positionType: ParticleSystem.Relative
+        fileName: "../particles/FireParticle.json"
+        y: -5
+        x: 15
     }
 
     Timer {
         id: shootTimer
         // this adjusts how often hit() is called! the damage will always be flameAreaDamagePerSecond, regardless of this setting!
         // so this only has a visual effect, how often the healthbar should be updated!
-        // dont set it too high, because then it lasts long until the first damage is applied which doesnt look good!
-        // and also dont set it too low, because then many times hit() is called which is bad for performance!
-        interval: 100
+        // don't set it too high, because then it lasts long until the first damage is applied which doesn't look good!
+        // and also don't set it too low, because then many times hit() is called which is bad for performance!
+        interval: 300
         repeat: true
         triggeredOnStart: true // causes onTriggered to be called when running switches to true - this is important because otherwise the initial rotation action would only be started "interval" ms after the initial contact
         // running gets set when aimingAtTargetChanged changes! also only shoot, when a target is set!
@@ -84,32 +121,12 @@ TowerBase {
 
             // __lastShoot must not be set here, because then users could cheat by pressing the pause button and then the next flamethrower shot would kill the squaby instantly when resumed again
             //__lastShoot = new Date();
-
-            shootTimer.running = true;
-
-            // starts the looping audio effect
-            shootEffect.play();
-
-            // Start particles
-            if (__currentUpgradeLevels.damagePerSecond > 0) {
-                fireParticle2.start();
-            }
-            fireParticle1.start();
+            running = true
         }
     }
 
     onTargetRemoved: {
-        // stop the looping audio effect
-        shootEffect.stop();
-
-        // Stop particle effects
-        if (__currentUpgradeLevels.damagePerSecond > 0) {
-            fireParticle2.stop();
-        }
-        fireParticle1.stop();
-
-        shootTimer.running = false;
-
+        running = false
         // this would lead to error: Cannot assign null to QDateTime
         //__lastShoot = null;
     }
@@ -122,23 +139,36 @@ TowerBase {
 
     onTowerUpgraded: {
         if(upgradeType === "damagePerSecond") {
-            // Add second flame
-            fireParticle1.sourcePositiony = 5;
+          // decrease particle if running, because changing maxParticles will start the particle and we have to stop it.
+          if(fireParticle1.running) {
+            currentParticles--
+          }
 
-            // Start second flame if currently running
-            if (fireParticle1.particleStatus === fireParticle1.ParticleSystem.Playing)
-                fireParticle2.start();
+          // reduce particle number
+          fireParticle1.maxParticles = fireParticle1.maxParticles/2
+          // stop the particle because setting the maxParticles count respawns the particle
+          fireParticle1.stop()
+          fireParticle2.maxParticles = fireParticle2.maxParticles/2
+          // stop the particle because setting the maxParticles count respawns the particle
+          fireParticle2.stop()
+
+            // Add second flame
+            fireParticle1.y = 5;
+
+          if(running && currentParticles < maximumParticles) {
+            currentParticles++
+            fireParticle1.start();
+            fireParticle2.start();
+          }
         }
         else if(upgradeType === "range") {
             // Change to napalm
-            fireParticle1.startColorRed = 1;
-            fireParticle1.startColorGreen = 1;
-            fireParticle1.startColorBlue = 1;
+            fireParticle1.startColor = "#ffffff"
+            fireParticle1.startColorAlpha = 0.7
             fireParticle1.textureFileName = "../particles/particleNapalm.png";
 
-            fireParticle2.startColorRed = 1;
-            fireParticle2.startColorGreen = 1;
-            fireParticle2.startColorBlue = 1;
+            fireParticle2.startColor = "#ffffff"
+            fireParticle2.startColorAlpha = 0.7
             fireParticle2.textureFileName = "../particles/particleNapalm.png";
         }
     }

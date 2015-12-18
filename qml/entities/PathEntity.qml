@@ -1,5 +1,5 @@
-import QtQuick 1.1
-import VPlay 1.0
+import QtQuick 2.0
+import VPlay 2.0
 
 /**
  * This is not a real "entity" - it contains a list of waypoints, with a collider being created for each waypoint.
@@ -25,7 +25,7 @@ Item {
       initializeFromWaypoints(waypoints, true);
     }
 
-    // dont recreate every time - appendSingleWaypoint may be called, where also the waypoints variant is modified, but there the old entities shouldnt be removed!
+    // don't recreate every time - appendSingleWaypoint may be called, where also the waypoints variant is modified, but there the old entities shouldnt be removed!
     // so to initialize the waypoints, call initializeFromWaypoints()!
 //    onWaypointsChanged: {
 //      createPathFromWaypoints();
@@ -212,7 +212,9 @@ Item {
                                                       {"x": sectionX, "y":sectionY,
                                                         "width": sectionWidth, "height": sectionHeight,
                                                         "first": prevWaypoint,
-                                                        "second": waypoint
+                                                        "second": waypoint,
+                                                        //Change z value of the waypoints and sections to -1 that every squaby and elements of the scene are over the waypoints because all of them are at level 0 normally, but the waypoints get generated in new levels again and pooled squabies would be below the waypoints then when reused.
+                                                        "z": -1
                                                       });
 
       // create the WaypointEntity for the last waypoint
@@ -220,7 +222,9 @@ Item {
       entityManager.createEntityFromUrlWithProperties(Qt.resolvedUrl("Waypoint.qml"),
                                                       {"x": prevWaypoint.x, "y": prevWaypoint.y,
                                                         "prev": prevPrevWaypoint,
-                                                        "next": waypoint
+                                                        "next": waypoint,
+                                                        //Change z value of the waypoints and sections to -1 that every squaby and elements of the scene are over the waypoints because all of them are at level 0 normally, but the waypoints get generated in new levels again and pooled squabies would be below the waypoints then when reused.
+                                                        "z": -1
                                                       });
       }
 
@@ -243,9 +247,6 @@ Item {
 //      sections.push(pathSectionEntity);
 //      waypointEntities.push(wpEntity);
 
-      // this is done automatically, when the entity is created dynamically with entityManager!
-//      window.loadItemWithCocos(wpEntity);
-//      window.loadItemWithCocos(pathSectionEntity);
 
     }
 

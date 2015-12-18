@@ -1,11 +1,11 @@
-import QtQuick 1.1
+import QtQuick 2.0
 import "../gameScene/hud"
 import "PathCreationLogic.js" as Logic
-
+import VPlay 2.0
 
 Item {
   id: draggableArea
-  // this gets enabled only, when scene.pathCreationMode is set to true
+  // this gets enabled only, when LevelEditingMenu.state === "PathCreation" is set to true
 
   // set this size to the playfield (=scene.height-hud.height)
 
@@ -20,26 +20,25 @@ Item {
   property variant finalWaypoint: Qt.point(464, 208)
 
   // the green range is shown where to start the dragging, and the red range where to end it
-  Image {
+  MultiResolutionImage {
     id: firstWaypointImage
     x: firstWaypoint.x-width/2
     y: firstWaypoint.y-height/2
 
     width: 2*gridSize
     height: 2*gridSize
-    source: "../img/range_radius80_allowed.png"
+    source: "../../assets/img/menu_labels/range_radius_allowed.png"
   }
 
-
-  Image {
+  MultiResolutionImage {
     id: finalWaypointImage
     x: finalWaypoint.x-width/2
     y: finalWaypoint.y-height/2
     width: 2*gridSize
     height: 2*gridSize
-    source: "../img/range_radius80_forbidden.png"
+    source: "../../assets/img/menu_labels/range_radius_forbidden.png"
 
-    // with hoverEnabled, it also doesnt work!
+    // with hoverEnabled, it also doesn't work!
 //    MouseArea {
 //      anchors.fill: parent
 //      hoverEnabled: true
@@ -156,7 +155,7 @@ Item {
       if(!targetReached) {
 
         // NOPE: add a waypoint in between here
-        // dont add it here - it might be a straight line, then the waypoint couldnt be rotated!
+        // don't add it here - it might be a straight line, then the waypoint couldnt be rotated!
 //        var sceneMouseX = mouseX+firstWaypointImage.x;
 //        var sceneMouseY = mouseY+firstWaypointImage.y;
 //        Logic.positionChanged(sceneMouseX, sceneMouseY);

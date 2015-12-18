@@ -1,11 +1,11 @@
-import QtQuick 1.1
-import VPlay 1.0
-import VPlay 1.0
+import QtQuick 2.0
+import QtMultimedia 5.0 // needed for SoundEffect.Infinite
+import VPlay 2.0
 import "../particles"
 // for HealthBar & HealthComponent
 import "../gameScene"
 // this is only needed to get access to Box2DFixture class, containing the categories
-import Box2D 1.0
+
 
 TowerBase {
     id: turbine
@@ -19,7 +19,7 @@ TowerBase {
     // if nothing is set, the default colliderRadius defined in TowerBase is 4 grids
     //colliderRadius: 15*scene.gridSize
 
-    // these get set per tower, are the logic properties and could be put into an own component!?    
+    // these get set per tower, are the logic properties and could be put into an own component!?
     shootDelayInMilliSeconds: level.balancingSettings.turbine.shootDelayInMilliSeconds // is set to 7000
     cost: level.balancingSettings.turbine.cost
     saleRevenue: level.balancingSettings.turbine.saleRevenue
@@ -49,41 +49,41 @@ TowerBase {
         id: sprite
     }
 
-    Sound {
+    SoundEffectVPlay {
         id: whirlEffect
-        source: "../snd/turbineRunning.wav"
+        source: "../../assets/snd/turbineRunning.wav"
         loops: SoundEffect.Infinite
     }
 
-    Sound {
+    SoundEffectVPlay {
         id: squabyShredderEffect
-        source: "../snd/turbineShredder.wav"
+        source: "../../assets/snd/turbineShredder.wav"
     }
 
-    Sound {
+    SoundEffectVPlay {
         id: turbineExplodeEffect
-        source: "../snd/turbineExplode.wav"
+        source: "../../assets/snd/turbineExplode.wav"
     }
 
-    // Particles {
-    SmokeParticles {
+    ParticleVPlay {
         id: smokeParticle
-        // filename: "../particles/smoke.plist"
+        fileName: "../particles/SmokeParticle.json"
         duration: shootDelayInMilliSeconds*0.001
     }
-
-    // Following two blood praticle effets are for minced squabies
-    // Particles {
-    SplatterParticles {
-        id: splatterParticle
-        // filename: "../particles/splatter.plist"
-        sourcePositionx: -15
-    }
-    // Particles {
-    DeathParticles {
+    ParticleVPlay {
         id: puddleParticle
-        // filename: "../particles/death.plist"
-        sourcePositionx: -25
+        fileName: "../particles/DeathParticle.json"
+        x: -25
+        // particle needs to be under the healthbar
+        z: sprite.z-1
+    }
+    // Following two blood praticle effets are for minced squabies
+    ParticleVPlay {
+        id: splatterParticle
+        fileName: "../particles/SplatterParticle.json"
+        x: -15
+        // particle needs to be under the healthbar
+        z: sprite.z-1
     }
 
     Timer {
@@ -103,13 +103,14 @@ TowerBase {
     Healthbar {
         id:healthbar
         // 0/0 is the center now, so shift it the same way as SpriteSequence was
-        // dont position the x&y directly, only the x&y of the child item
-        absoluteX: -sprite.width/2
-        absoluteY: -sprite.height/2
-        width:sprite.width
+        // don't position the x&y directly, only the x&y of the child item
+        absoluteX: -sprite.sprite.width/2
+        absoluteY: -sprite.sprite.height/2
+        width: sprite.sprite.width
         height: 3
         // this connects the visual item with the logical one
         percent: healthComponent.healthInPercent
+        useSpriteVersion: true
     } // end of Healthbar
 
     HealthComponent {
@@ -120,7 +121,6 @@ TowerBase {
             console.debug("Turbine: turbine's lives are over, play explode animation");
 
             // this starts the turbine animation, and will stop at the last frame (the exploded frame)
-            //sprite.running = true;
             sprite.explode();
 
             turbineExplodeEffect.play();
@@ -160,6 +160,8 @@ TowerBase {
 
         // stop the smoke particle effect when the tower is repaired
         smokeParticle.stop();
+        // particle should not rotate with parent when new target is spotted after repair value
+        puddleParticle.stopLivingParticles()
       }
     }
 
@@ -176,26 +178,17 @@ TowerBase {
         whirlEffect.stop();
 
         // set the whirl animation to invisible again
-        sprite.state = "";        
+        sprite.state = "";
     }
-
-
-    property date lastShoot: new Date()
 
     // play the animation and the sound - gets called only if the target is aimed at
     function whirl() {
-
-        var now = new Date();
-        var dt = now-lastShoot;
-        lastShoot = now;
-        console.debug("Turbine: whirl! dt:", dt);
-
         sprite.state = "whirl";
 
         whirlEffect.play();
 
-        targetEntity.startWhirlingToTarget(this);
-
+        // NOTE: with qt 5, we must not write startWhirlingToTarget(this) anymore! this is not the turbine
+        targetEntity.startWhirlingToTarget(turbine);
     }
 
     function whirlingOfSquabySuccessful(squabyId) {

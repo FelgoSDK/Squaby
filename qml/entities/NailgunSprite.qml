@@ -1,55 +1,58 @@
-import QtQuick 1.1
-import VPlay 1.0
+import QtQuick 2.0
+import VPlay 2.0
 
 TowerBaseSprite {
-    id: nailgunSprite
-    property alias running: fireSprite.running    
+  id: nailgunSprite
 
-    spriteSheetSource: "../img/nailgun-sd.png"
-    defaultFrameWidth: 28
-    defaultFrameHeight: 56
+  // all upgrade states have the same base image
+  spriteSheetSource: "../../assets/img/spritesheets/nailgun/1-base.png"
+  property alias running: spriteSequence.running
 
-    SpriteSequence {
-        id: fireSprite
-        // if goalSprite is not set, the first Sprite is used
+  scale: 0.875
 
-        spriteSheetSource: nailgunSprite.spriteSheetSource
+  Item {
+//    rotation: nailgunSprite.parent.rotation
+    // could also be an AnimatedSpriteVPlay, because there is only 1 animation
+    SpriteSequenceVPlay {
+      id: spriteSequence
+      rotation: nailgunSprite.parent.rotation
 
-        // 0 degrees should point to the right, not to the bottom like the image currently is
-        rotation: rotationOffset
+      anchors.centerIn: parent
 
-        // the animation should NOT run from the beginning! once jumpTo is called, it gets set to true automatically!
-        running: false
+//      filename: "../../assets/img/all-sd.json"
+      defaultSource: "../../assets/img/spritesheets/nailgun/nailgun.png"
 
-        // the same effect is reached by setting translateToCenterAnchor, or setting x&y manually
-        translateToCenterAnchor: false
+      // the animation should NOT run from the beginning! once jumpTo is called, it gets set to true automatically!
+      // dont set running to false now, this is changed in onUsedFromPool()
+//      running: false
 
-        x: -width/2
-        y: -height/2
+      SpriteVPlay {
+        name: "idle"
+        startFrameColumn: 1
+        startFrameRow: frameElement
+        frameWidth: 32
+        frameHeight: 64
+        // setting a long frameDuration is a performance improvement, because the animation isnt switched internally then
+        frameDuration: 100000
+      }
 
-        // gets set in onModifiedFilenameChanged
-        property int contentScaledFrameWidth
-        property int contentScaledFrameHeight
+      SpriteVPlay {
+        id: shootAnimation
+        name: "shoot"
+        frameWidth: 32
+        frameHeight: 64
 
-        Sprite {
-            id: shootAnimation
-            name: "shoot"
-            frameWidth: nailgunSprite.contentScaledFrameWidth
-            frameHeight: nailgunSprite.contentScaledFrameHeight
-            scale: nailgunSprite.towerBaseContentScaleFactor
-            frameCount: 10
-            startFrameColumn: 3
-            frameRate: 60 // with a frameCount of 10 and a frameRate of 60 (= frameDuration of 25ms), the whole animation takes 167ms to complete
-            loop: false
-
-            // set the same row for all sprites
-            startFrameRow: nailgunSprite.startFrameRow
-        }
-
+        frameCount: 10
+        startFrameColumn: 1
+        startFrameRow: frameElement
+        frameRate: 60 // with a frameCount of 10 and a frameRate of 40 (= frameDuration of 25ms), the whole animation takes 250ms to complete
+        to: {"idle": 1}
+      }
     }
+  }
 
-    function playShootAnimation() {
-        // jumpTo automatically sets the running property of SpriteSequence to true
-        fireSprite.jumpTo("shoot");
-    }
+  function playShootAnimation() {
+    // jumpTo automatically sets the running property of SpriteSequence to true
+    spriteSequence.jumpTo("shoot");
+  }
 }

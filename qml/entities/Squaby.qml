@@ -1,7 +1,7 @@
-import QtQuick 1.1
+import QtQuick 2.0
 // this is only needed to get access to Box2DFixture class, containing the categories
-import Box2D 1.0
-import VPlay 1.0
+
+import VPlay 2.0
 import "../particles"
 import "../gameScene" // for HealthBar component
 
@@ -16,14 +16,14 @@ EntityBase {
     // they get accessed by the health component when a killed_event is created
     property int score: 5
     property int gold: 5
-    // ATTENTION: this property binding (gold+5) would be overwritten if pooling would be used, thus dont use pooling yet!
+    // ATTENTION: this property binding (gold+5) would be overwritten if pooling would be used, thus don't use pooling yet!
     //property int goldPlus5: gold+5
 
     // defining an enum is not possible from QML right?
     //property enumeration concreteType: { squabyYellow,
 
     // these aliases are only introduced to allow modification of the entities directly from EntityManager for testing toggling animations and the healthbar
-    property alias squabySprite: squabySprite
+    property alias squabySprite: squabySpriteElement.squabySprite
     property alias healthbar: healthbar
     property alias pathMovement: pathMovement
     // this is only for testing the performance difference between calling hitByValue() and directly manipulating currentHealth!
@@ -33,15 +33,14 @@ EntityBase {
     property alias health: healthComponent.health
     property real damageMultiplicatorNailgun: 1
     property real damageMultiplicatorFlamethrower: 1
+    property real damageMultiplicatorTaser: 1
+    property real damageMultiplicatorTesla: 1
     /// Duration how long it takes a squaby to move from the first to the last waypoint, so this determines the squaby speed.
     //property alias completePathAnimationDuration: pathMovement.completePathAnimationDuration
     property alias pathMovementPixelsPerSecond: pathMovement.velocity
 
-    // it must be on top of the path (so the all.png spritesheet with z=0)!
-    // the spriteBatchNodeZ is the z value of the SpriteBatchNode, to be able to set an order in the SpriteBatchContainer!
-    // this is used by the SquabySprite and has no other effect than in cocos!
-    // set it to 2, because z=1 are the towers and z=0 is the path
-    property int spriteBatchNodeZ: 2
+    // This property is set by levelloader or leveleditor when new waypoints are available. True by default to fetch waypoints during initialisation
+    property bool movementAnimationNeedUpdate: true
 
     // ATTENTION: damageMultiplicators can only be accessed from outside, but not from the same component here!
     // thus move this initialization to the healthComponent itself!
@@ -68,14 +67,19 @@ EntityBase {
 
       // the particle may still play, as they are not looping anyway
       // NOTE: stopLivingParticles must be called here, because stop() would not kill the already living particles from the death animation, and so when it gets reused soon after, the old particles would still be visible!
-      hitParticle.stopLivingParticles()
-      deathParticle.stopLivingParticles()
+
+      if(hitParticle.running)
+        hitParticle.stopLivingParticles()
+      if(deathParticle.running)
+        deathParticle.stopLivingParticles()
 
       squabySprite.running = false
-
       pathMovement.running = false
-      whirlRotationAnimation.stop()
-      dieAfterWhirlTimer.stop()
+
+      if(whirlRotationAnimation.running)
+        whirlRotationAnimation.stop()
+      if(dieAfterWhirlTimer.running)
+        dieAfterWhirlTimer.stop()
 
 
       // if the squaby was whirled, its rotation would not be 0 initially
@@ -83,7 +87,8 @@ EntityBase {
 
       // NOTE: this must be set! because the squaby could have been destroyed in between of the game, when it was not died!
       // if it would not be set explicitly, this pooled entity would otherwise be active for collisions!
-      collidersActive=false
+      if(collidersActive)
+        collidersActive=false
 
       // set it to invisible here, not from entityDestroyed
       //visible = false
@@ -105,16 +110,12 @@ EntityBase {
       // when the squaby was whilred, this was set to false
       pathMovement.rotationAnimationEnabled = true
 
-      // this resets the position of the entity when it is destroyed - this also does not help in the flickering issue (the squaby shortly appears on another position!
-      // the waypoints might have been set to the next turbine!
-      // this might change when another level is loaded, so it MUST be done here, not in onMovedToPool!
-      pathMovement.waypoints = level.pathEntity.waypoints
-      // this also positions the entity to the first waypoint position!
-      pathMovement.updateAnimationsFromWaypoints();
+      // update movement animation when new waypoints are available otherways reset the animation.
+      updatePathPosition()
 
       // this is required, so the correct position of the entity is set in this frame and not in the next
       // this is a cocos issue, because batched sprites use a cached nodeToWorldTransform for performance improvements
-      squaby.updateItemPositionAndRotationImmediately();
+      //squaby.updateItemPositionAndRotationImmediately();
 
       // restart pathMovement
       pathMovement.running = true; // might have been set to false when it got killed in between
@@ -124,12 +125,14 @@ EntityBase {
       //whirlingTurbineId  = "";
 
       // when the squaby died from a nailgung or flamethrower, it played the fadeout animation, thus reset the opacity to 1
-      if(squabySprite.opacity !== 1)
-        squabySprite.opacity = 1;
+      if(squabySpriteElement.opacity !== 1)
+        squabySpriteElement.opacity = 1;
 
       // this might be set for debugging, to test which squabies are pooled!
       //squabySprite.opacity = 0.5
 
+      // note: if we set running to false above, we also must set it true here, otherwise nothing is animated
+      squabySprite.running = true
       squabySprite.jumpTo("walk");
 
       // they must get set to active explicitly, because they were set to false in onDied()!
@@ -140,48 +143,47 @@ EntityBase {
 
     }
 
+    function updatePathPosition() {
+      // only if waypoint have change to a general update of the movementAnimation, otherways only entity position update
+      if(movementAnimationNeedUpdate) {
+        //console.debug("Squaby: pathMovement needs update because level waypoints have changed!")
+        pathMovement.waypoints = level.pathEntity.waypoints
+        // this also positions the entity to the first waypoint position!
+        pathMovement.updateAnimationsFromWaypoints();
+        movementAnimationNeedUpdate = false
+      } else {
+        pathMovement.reset()
+      }
+    }
 
     // gets played when HealthComponent.onDied is received
-    Sound {
+    SoundEffectVPlay {
         id: dieSound
         // an ogg file is not playable on windows, because the extension is not supported!
-        source: "../snd/squafurScream.wav"
+        source: "../../assets/snd/squafurScream.wav"
     }
     // these 2 soundEffects are played randomly when a squaby dies, so 2 different die sounds (not based on the squaby type, as they both sound good and should be randomly switched)
-    Sound {
+    SoundEffectVPlay {
         id: dieSound2
-        source: "../snd/squatanScream.wav"
+        source: "../../assets/snd/squatanScream.wav"
     }
 
     // Particle when Squaby gets hit
-    // Particles {
-    SplatterParticles {
+    ParticleVPlay {
         id: hitParticle
-        // filename: "../particles/splatter.plist"
-        positionType: ParticleSystem.Relative
+        fileName: "../particles/SplatterParticle.json"
+        //positionType: ParticleSystem.Relative
+        x: -5
     }
 
     // Particle when Squaby dies
-    // Particles {
-    DeathParticles {
+    ParticleVPlay {
         id: deathParticle
-        // filename: "../particles/death.plist"
+        fileName: "../particles/DeathParticle.json"
     }
 
-
-    // just for testing, this would exchange the squaby image with a soccerball or a nailgun sprite, for testing the z-order-issue with animated sprites -> reason for not-working z-ordering is that at the moment of testing the squaby&nailgun are in a different spritsheet!
-//    Obstacle {
-//        id: squabySprite
-//        obstacleType: "soccerball"
-//    }
-//    NailgunSprite {
-//        id: squabySprite
-//    }
-
     SquabySprite {
-        id: squabySprite
-
-        property int spriteBatchNodeZ: squaby.spriteBatchNodeZ
+        id: squabySpriteElement
 
         NumberAnimation on opacity {
             id: hideAnimation
@@ -194,10 +196,11 @@ EntityBase {
               console.debug("Squaby: start fadeout animation after dying")
             }
 
-            onCompleted: {
+            onStopped: {
               console.debug("Squaby: finished fadeout animation after dying, remove self")
               // after fading out, remove the entity
               squaby.removeEntity();
+              squabyCreator.squabyDied(variationType)
             }
         }
 
@@ -252,6 +255,7 @@ EntityBase {
           // no die sound should be played, and the player should not get a score but loose a life, as he didnt kill the squaby before the bed
           //squaby.destroy();
           squaby.removeEntity();
+          squabyCreator.squabyDied(variationType)
         }
     }
 
@@ -259,10 +263,9 @@ EntityBase {
     //onRotationChanged: healthbar.rotation=-rotation;
     Healthbar {
         id:healthbar
-        // z:2 // this shouldnt be needed, because defined after the Sprite and thus should be painted over it
 
         // 0/0 is the center now, so shift it the same way as SpriteSequence was
-        // dont position the x&y directly, only the x&y of the child item
+        // don't position the x&y directly, only the x&y of the child item
         absoluteX: -width/2
         absoluteY: -16//-squabySprite.height/2
 
@@ -276,22 +279,8 @@ EntityBase {
         // do not make it visible when it is full of health, and also when in died-state
         visible: percent<1 && squaby.state!="died"
 
-        // the healthbar is not included in the sprite any more! (with the new spritesheets)
-        // set the spriteSheetSource to the one from squaby
-        // squaby's spritesheetSource is empty at initialization, it gets set in onCompleted!
-        spriteSheetSource: squabySprite.spriteSheetSource
         // this is an optimization, to guarantee only the sprite version is loaded not the rectangles first
         useSpriteVersion: true
-
-        // these are the pixel position of the green and red value of the healthbar for better performance than with a rectangle (single draw call!)
-        // the size of the whole spriteSequence image is 515x32 - do not use the one at width-1, otherwise it is half-transparent!
-        // squabySprite.height cant be used here!
-        alivePixelX: (515/squabySprite.squabyContentScaleFactor)-2
-        alivePixelY: 1
-        diedPixelX: (515/squabySprite.squabyContentScaleFactor)-2
-        diedPixelY: (32/squabySprite.squabyContentScaleFactor)-1
-
-
     } // end of Healthbar
 
     HealthComponent {
@@ -303,7 +292,9 @@ EntityBase {
 
         damageMultiplicators: {
             "nailgun": damageMultiplicatorNailgun,
-            "flamethrower": damageMultiplicatorFlamethrower
+            "flamethrower": damageMultiplicatorFlamethrower,
+            "taser": damageMultiplicatorTaser,
+            "tesla": damageMultiplicatorTesla
         }
 
         onDied: {
@@ -312,19 +303,24 @@ EntityBase {
             // this gets checked for the Healthbar - when in state died, the healthbar is invisible
             squaby.state = "died"
             // old Hide healthbar during dying
-            // dont set it like that, otherwise the binding would be broken!
+            // don't set it like that, otherwise the binding would be broken!
             //healthbar.visible = false;
 
             // this signal should be emitted, otherwise the nailguns still aim towards this squaby!
             // the squaby does not exist logically here any more, but only visually (playing the die animation)
-            console.debug("emitting squaby.entityDestroyed() manually");
-            squaby.entityDestroyed();
+            // db this isn't used anymore because the target gets removed anyway because squaby.collidersActive = false triggers a fixture.onEndContact in tower base.
+            //console.debug("emitting squaby.entityDestroyed() manually");
+            //squaby.entityDestroyed();
 
             // this must be set to visible=true explicitly, because at entityDestroyed() visible is set to false!
             // but it must be visible, because the squaby should play a die-animation and fadeout!
-            squaby.visible = true;
+            //squaby.visible = true;
             // also, set collidersActive to false - it would usually be connected with the visible property, but the logical entity is removed, but still visible!
             squaby.collidersActive = false;
+
+            // when a squaby gets killed by another tower while it is in whirl from turbine it should stop the turbine!
+            whirlRotationAnimation.stop()
+            dieAfterWhirlTimer.stop()
 
             // the collider must be destroyed, otherwise there would still be emitted a contactChanged-signal!
             // ATTENTION: the collider must NOT be destroyed, otherwise pooling wont work!
@@ -337,7 +333,7 @@ EntityBase {
             // TODO: why are not all direct ancestors known (level, world)??
 //            console.debug("window.width:", window.width, ", scene.entityContainer:", scene.entityContainer);
 //            console.debug("activeScene:", activeScene); // activeScene (property of window) is accessible
-//            console.debug("entityContainer:", entityContainer); // this is accessible, dont know why!? it was defined as property in scene
+//            console.debug("entityContainer:", entityContainer); // this is accessible, don't know why!? it was defined as property in scene
 //            console.debug("testIdAccessor in window:", testIdAccessor); // this is also known!!!
 
 //            //console.debug("backgroundMusic in scene:", backgroundMusic); // this is not known, because only items in window are known
@@ -346,7 +342,7 @@ EntityBase {
 //            //console.debug("level.player:", level.player);
 //            //console.debug("playerVariant:", playerVariant); // playerVariant is not accessible! why not?
 
-          // dont start the death particles, as they may be too violent and also distract from the game
+          // don't start the death particles, as they may be too violent and also distract from the game
           //deathParticle.start();
 
           die();
@@ -383,37 +379,9 @@ EntityBase {
         collisionTestingOnlyMode: true
 
         // set a collisionMask & flag for squabies, to avoid colliding squabies with squabies but only with towers
-        // category 2 are the towers, so squabies dont collide with each other, but with towers
+        // category 2 are the towers, so squabies don't collide with each other, but with towers
         categories: Box.Category1
         collidesWith: Box.Category2
-
-        // ATTENTION: setting body.sleepingAllowed to false is VERY important if the positions get set from outside! otherwise no BeginContact and EndContact events are received!
-        // it would be enough to set this flag for one of the two colliding bodies though as a performance improvement
-//        body.sleepingAllowed: false
-//        fixture.sensor: true
-
-
-        // this would shift the position by an offset, but not good performance-wise
-        //x: parent.x+30
-
-
-        // if not needed comment this for performance improvements!
-//        onBeginContact: {
-//            var fixture = other;
-//            var body = other.parent;
-//            var component = other.parent.parent;
-//            var collidedEntityType = component.owningEntity.entityType;
-
-//            //console.debug("squaby beginContact with: ", other, other.parent, other.parent.parent);
-//            //console.debug("squaby collided entity type:", collidedEntityType);
-
-//        }
-//        onContactChanged: {
-//            console.debug("squaby contactChanged");
-//        }
-//        onEndContact: {
-//            //console.debug("squaby endContact");
-//        }
     }
 
     /* this would move x&y independently! unwanted
@@ -470,15 +438,15 @@ EntityBase {
 
             //squaby.destroy();
             squaby.removeEntity();
-
+            squabyCreator.squabyDied(variationType)
         }
     }
 
     // forward this message to healthComponent, which originates from towers when they fire
     function hitWithAttackerIdAndType(attackerId, attackerType) {
         // Show particles if hit by a nailgun
-        if (attackerType === "nailgun")
-            hitParticle.start();
+        if (attackerType === "nailgun" && currentParticles < maximumParticles)
+          hitParticle.start();
         healthComponent.hitWithAttackerIdAndType(attackerId, attackerType);
     }
 
@@ -490,6 +458,9 @@ EntityBase {
     function startWhirlingToTarget(towerTarget) {
 
       console.debug("Squaby: startWhirlingToTarget()")
+
+      // tell squaby to catch original movementaniamtion path data when respawned, otherwise the whirl animation movement data is still active.
+      movementAnimationNeedUpdate = true
 
         // start the whirl animation of squaby
         squabySprite.jumpTo("whirl");
@@ -544,7 +515,7 @@ EntityBase {
 
         // the timer should be a bit shorter than the distance, so the squaby should look like it disappears in front of the turbine
         // TODO: for exact position, not the time should be adjusted but the distanceSquared should be reduced by the turbine foundation, and then the percentage should be calculated!
-        // but it is not visually detectable, so leave it with this simple approach (the tower doesnt have
+        // but it is not visually detectable, so leave it with this simple approach (the tower doesn't have
 
         console.debug("set dieAfterWhirlTimter to almost pathDuration:", pathMovement.completePathAnimationDuration);
         dieAfterWhirlTimer.interval = pathMovement.completePathAnimationDuration*0.9;

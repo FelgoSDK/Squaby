@@ -1,11 +1,9 @@
 // only in qtquick 1.1 implicitWidth is known!
-import QtQuick 1.0
-import VPlay 1.0
+import QtQuick 2.0
+import VPlay 2.0
 
 Item {
   id: hud
-  property real vertexZ: 3 // this is needed, otherwise the HUD would not be on top of the bed, which has vertexZ=2
-
   // for testing if the BuildEntityButton entities were really built
   //opacity: 0.2
 
@@ -17,37 +15,29 @@ Item {
 
   // this gets set when a tower is selected - it is needed for the turbine when it is out of lives, and if the tower is currently selected, then the hud should be updated
   property string selectedTowerId: ""
+  property alias levelEditingHud: levelEditingHUD
 
   // this is emitted when the menu button was clicked
   signal menuButtonClicked
-
-  // not needed any more - the hud state is switched in entitySelected()
-  //    onSelectedEntityChanged: {
-  //        console.debug("selectedEntity changed to:", selectedEntity);
-  //        if(selectedEntity)
-  //            hud.state = "modifyEntity";
-  //    }
 
   // start in the buildTowers state by default
   state: "buildTowers"
 
   // this will be set to visible and positioned to the selected tower when hud.towerSelected() is called, or from BuyTowerButton when the new entity gets moved
   TowerRangeCircle {
-    // this sets the vertexZ to 2.1 (3-0.9=2.1), so it is below the hud here (with vertexZ=3), but above the closet which also has a vertexZ of 2
-    // NOTE: the vertexZ is the sum of all parents, not like the z property which is only relevant between siblings!
-    property real vertexZ: -0.9
-    // revert the HUD vertexZ here! otherwise it would be drawn on top of the tower! (because the HUD vertexZ is 3, and the nailgun spritesheet is only 0!)
-    // TODO: change the TowerRange component to also use a spritesheet instead of the Image, then this is not needed any more!
-    // do NOT set a negative vertexZ, because otherwise it would be below the bed,closet
-    // with default settings, it is on top of the HUD & sprite batches (so also on top of tower, but that is not a problem as it still looks ok)
-    //        property real vertexZ: -hud.vertexZ
-
     id: selectedTowerRange
 
     // the size is set based on the colliderSize automatically
 
     // should be invisible at beginning, only gets visible when a tower is selected
     visible: false
+
+    onVisibleChanged: {
+      if(visible)
+        tutorials.nextAction("towerRange", "visible")
+      else
+        tutorials.nextAction("towerRange", "invisible")
+    }
 
     // a transform is needed here, because this item gets positioned by setting the center position, so the transformOrigin is in the center
     transform: [
@@ -57,61 +47,25 @@ Item {
     ]
   }
 
-
   SingleSquabySprite {
     id: menuBackground
-    source: "menuBackground.png"
-    //z:-1 // this should not be needed for cocos, as it is the first item defined, it should be below all other siblings by default!
-  }
+    source: "../../../assets/img/menu_labels/menuBackground.png"
 
-  MenuGoldWaveItems {
-    id: menuGoldWaveItems
+    visible: opacity > 0
 
-    onMenuButtonClicked: {
-      hud.menuButtonClicked();
-    }
-  }
-
-  // this button is only shown, when coming from the levelEditing mode (i.e. when a new level was created)
-  // in that case, there must be a quick way to go back to the level mode
-  // DONE: add a nicer image instead of this ugly button
-  //SimpleButton {
-  ToggleGameModeButton {
-    anchors.left: menuGoldWaveItems.right
-    anchors.leftMargin: 5
-    text: "Level\nMode"
-    // only make visible when the game was started from levelEditing mode
-    //visible: scene.state == "testLevelInLevelMode"
-    visible: scene.cameFromLevelEditing
-    onClicked: {
-      scene.leaveGameToLevelEditingMode()
-    }
-  }
-
-  BuyTowersHUD {
-    id: buyTowersHUD
-    anchors.right: hud.right
-    // this gets set to visible in the PropertyChanges for the default state
-    // so this is visible in the default state!
-    visible: false
-  }
-
-  UpgradeTowerHUD {
-    id: upgradeTowerHUD
-    anchors.right: hud.right
-    // in the default state, the upgrades will be invisible - they get visible when a tower was selected
-    visible: false
+    /*Behavior on opacity {
+      PropertyAnimation {
+        duration: 600
+      }
+    }*/
   }
 
   // instead of loading this always, speed up app start by not loading the HUD when it is never needed (i.e. when multiple levels are not allowed)
-
-  Loader {
-//  LevelEditingHUD {
+  LevelEditingHUD {
     id: levelEditingHUD
-    source: allowMultipleLevels ? "LevelEditingHUD.qml" : ""
 
-    anchors.left: menuGoldWaveItems.right
-    anchors.right: hud.right
+    anchors.left: parent.left
+    anchors.right: parent.right
 
     height: hud.height
 
@@ -119,16 +73,83 @@ Item {
     visible: false
   }
 
-  Loader {
-//  ModifyEntityHUD {
-    id: modifyEntityHUD
-    source: allowMultipleLevels ? "ModifyEntityHUD.qml" : ""
+  function changeToBuildMenu() {
+    menuBackground.opacity = 1
+    if(itemEditor.visible) {
+      itemEditor.slideOut()
+    }
+  }
+
+  function changeFromBuildMenu() {
+    menuBackground.opacity = 0
+    if(!itemEditor.visible) {
+      itemEditor.slideIn()
+    }
+  }
+
+
+  Item {
+    id: menuButtonItem
+      // this item is only needed, because the MouseArea must not be a child of Row, because anchoring is used there
+      width: menuButton.width
+      height: menuButton.height
+
+      //Image { // use a res-independent spritesheet instead
+      SingleSquabySprite {
+          id: menuButton
+          source: "../../../assets/img/menu_labels/menuIconMenuButton.png"
+      }
+      // the MouseArea must not be a child of SingleSquabySprite, as all the children get overwritten there!
+      MouseArea {
+          // the anchors.fill: menuButton causes the following QML error: "QML Row: Cannot specify left, right, horizontalCenter, fill or centerIn anchors for items inside Row"
+          // it does work though, so leave it
+          anchors.fill: menuButton
+          onClicked: {
+              menuButtonClicked();
+          }
+      }
+  }
+
+  // comment the real SquabyPerformanceTestOptions component at the moment as a performance improvement to speed up loading time
+  SquabyPerformanceTestOptions {
+    id: perfmenuButtonItem
     anchors.right: hud.right
+    visible: developerBuild && scene.state !== "levelEditing"
+  }
+
+  Item {
+    id: anchorItem
+    anchors.right: developerBuild ? perfmenuButtonItem.left : hud.right
+  }
+
+  MenuGoldWaveItems {
+    id: menuGoldWaveItems
+    anchors.left: menuButtonItem.right
+  }
+
+  BuyTowersHUD {
+    id: buyTowersHUD
+    height: parent.height
+    anchors.right: anchorItem.left
+    // this gets set to visible in the PropertyChanges for the default state
+    // so this is visible in the default state!
+    visible: false
+  }
+
+  UpgradeTowerHUD {
+    id: upgradeTowerHUD
+    anchors.right: anchorItem.left
     // in the default state, the upgrades will be invisible - they get visible when a tower was selected
     visible: false
   }
 
-
+  Loader {
+    id: modifyEntityHUD
+    source: "ModifyEntityHUD.qml"
+    anchors.right: anchorItem.left
+    // in the default state, the upgrades will be invisible - they get visible when a tower was selected
+    visible: false
+  }
 
   /**
      * Gets called by Obstacle.
@@ -148,6 +169,7 @@ Item {
      * Gets called by the towers when they are clicked. If they get clicked, the upgrade menu should be displayed.
      */
   function towerSelected(message) {
+    tutorials.nextAction(message.entityType,"clicked",message.towerPosition)
     // forward the update to the upgradeTowerHud
     upgradeTowerHUD.towerSelected(message);
 
@@ -161,6 +183,14 @@ Item {
 
       // reset the selectedTowerId when no upgrading is happening
       PropertyChanges { target: hud; selectedTowerId: ""}
+
+      StateChangeScript {
+        script: {
+          // reset state.e.g. when user is in build paths mode it should exit this state so the pathmode is not enabled/visible anymore
+          levelEditingHUD.state = ""
+          changeToBuildMenu()
+        }
+      }
     },
     State {
       name: "upgrading"      
@@ -174,6 +204,7 @@ Item {
     State {
       name: "levelEditing"      
       PropertyChanges { target: levelEditingHUD; visible: true}
+      PropertyChanges { target: menuButtonItem; visible: false}
 
       // this would work, but because selectedEntity may be undefined when entering the state, it would lead to an error! thus better use a StateChangeScript where a check if selectedEntity is valid can be used
       //PropertyChanges { target: selectedEntity ; state: ""}
@@ -186,14 +217,15 @@ Item {
 
       // ATTENTION: restoreEntryValues must be set to false, otherwise selectedEntity would be reset to the initial property value (undefined) when leaving the state!
       PropertyChanges { target: hud; selectedEntity: null; restoreEntryValues: false}
-      PropertyChanges { target: menuGoldWaveItems; state: "menuOnly"}
+      PropertyChanges { target: menuGoldWaveItems;  visible: false}
     },
 
     State {
       name: "modifyEntity"
       //extend: "levelEditing" // do NOT extend, otherwise selectedEntity would be set to null which is not desired!      
       PropertyChanges { target: modifyEntityHUD; visible: true}
-      PropertyChanges { target: menuGoldWaveItems; state: "menuOnly"}
+      PropertyChanges { target: menuGoldWaveItems; visible: false}
+      PropertyChanges { target: menuButtonItem; visible: false}
     }
   ]
 

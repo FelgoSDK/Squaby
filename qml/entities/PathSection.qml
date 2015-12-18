@@ -1,6 +1,6 @@
-import QtQuick 1.1
-import Box2D 1.0
-import VPlay 1.0
+import QtQuick 2.0
+
+import VPlay 2.0
 import "../gameScene/hud" // for SingleSquabySprite
 
 // by now, a PathSection only is the physics collider
@@ -65,7 +65,7 @@ EntityBase {
       SingleSquabySprite {
         x: -pathSection.width/2 + width*(index+1)
         y: -height/2
-        source: "steps-6-straight.png"
+        source: "../../assets/img/steps/steps-6-straight.png"
       }
 
 
@@ -86,13 +86,13 @@ EntityBase {
       var rot = calculateRotation();
       pathSection.rotation = rot
 
-      // dont count the first and the last waypoint tile, thus -4*gridSize (1 tile is actually 2*gridSize)
+      // don't count the first and the last waypoint tile, thus -4*gridSize (1 tile is actually 2*gridSize)
       var numberSteps = (width-4*gridSize) / (2*gridSize)
       repeater.model = numberSteps
     }
 
 //    function calculateSource() {
-//      return "../img/steps-6-straight.png";
+//      return "../../assets/img/steps-6-straight.png";
 //    }
 
     function calculateRotation () {

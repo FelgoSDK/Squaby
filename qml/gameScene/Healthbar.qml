@@ -1,14 +1,12 @@
-import QtQuick 1.0
-import VPlay 1.0
-// needed for SingleSpriteFromSpriteSheet
-import VPlay 1.0
+import QtQuick 2.0
+import VPlay 2.0
 
 // a healthbar should never get rotated with the entity! so at first a rotation is needed, then move it to the desired position
 // thus an additional Item is needed, because otherwise at first the transform is applied, and afterwards the movement
 // TODO: instead of applying the reverse rotation of the parent, this item should be implemented in C++ and set the QGraphicsItem flag ItemIgnoresTransformations!
 //Item {
 // the VisualItemPropertyObserver uses batched position updating, so prefer it over the normal item
-VisualItemPropertyObserver {
+Item {
 /* use this for debugging visually where the rectangle is:
   it should always be in the center unrotated when ignoreParentRotation is set to true
 Rectangle {
@@ -17,11 +15,10 @@ Rectangle {
 
     id:healthbar
 
-    // should be set to the same file like the contained squaby, otherwise z-ordering issues!
     // if it is not set (e.g. for turbine or for hud healthbar), the rectangles are used!
     // there is a problem when a spritesheet is used, because e.g. at the wave item there is a healthbar, and if it would be added there as a sprite, the order of the spriteBatchNode would be wrong!
     // so the alternative would be to only use a rectangle there, but not for the entities!
-    property url spriteSheetSource: ""//: "img/squafurY.png"
+    property url spriteSheetSource: ""
     // if this is set explicitly by the user, it is prevented to load the rectangle version first before the spriteSheet gets set, but loads the spriteSheet version from the beginning, regardless if the source is empty or not
     property bool useSpriteVersion: false
 
@@ -43,33 +40,25 @@ Rectangle {
 
     // instead of calculating the position with transforms, use nested items!
     // the rotation will be reverted by applying the reverse rotation - the child item nonRotatedItem can then be positioned normally without the parent rotation!
-    //property bool ignoreParentRotation: true
+    property bool ignoreParentRotation: true
     // needs not to be created newly, as the property exists for VisualItemPropertyObserver
     // when this flag is set, setting a rotation is useless as the rotation value gets overwritten every time the parent rotation changes!
     // as further performance improvement, only set ignoreParentRotation to true (thus connect the rotationChanged signal of parent in C++) when this item is visible!
-    ignoreParentRotation: visible
+//    ignoreParentRotation: visible
 
     // alternatively, a binding with a when-condition could be used, but that should not make a performance difference!
     // this would be fastest (test binding difference on mobile devices)! - the binding difference is not big, the limiting factor here is that it is called that often!
     //rotation: -parent.rotation // by overwriting the rotation in the calling class, this may be overwritten
     //rotation: (visible && ignoreParentRotation) ? -parent.rotation : 0
-//    Binding {
-//        target: healthbar
-//        property: "rotation"
-//        value: -healthbar.parent.rotation
-//        when: ignoreParentRotation
-//    }
+    Binding {
+        target: healthbar
+        property: "rotation"
+        value: -healthbar.parent.rotation
+        when: ignoreParentRotation && visible
+    }
 
     property alias absoluteX: nonRotatedItem.x
     property alias absoluteY: nonRotatedItem.y
-
-    // there must be a 1 pixel wide border (thus the image is 3x3 pixels), otherwise the texture will look blurred
-    // these must get set explicitly from outside, when useSpriteVersion is enabled!
-    // NOTE: no alias possible to greenHealthbarSprite & redHealthbarSprite, because they are defined within a Component element!
-    property int alivePixelX
-    property int alivePixelY
-    property int diedPixelX
-    property int diedPixelY
 
     // ATTENTION: this is necessary, otherwise the reverted rotation would be applied in the center leading to wrong results!
     // this must be provided when width or height are not 0, to get the expected reverting effect with ignoreParentRotation set to true!
@@ -85,7 +74,7 @@ Rectangle {
         // only use the spritesheet on cocos renderer! so not on Meego or Symbian, as performance is worse there with clipped images!
         // a check of spriteSheetSource.toString() is a slow process! 1 binding needs 27ms on Windows, which is far too long!
         // think of a faster approach for this binding!
-        sourceComponent: (system.cocosRenderer && (useSpriteVersion || spriteSheetSource!="")) ? spriteBarsComponent : rectangleBarsComponent
+        sourceComponent: (useSpriteVersion || spriteSheetSource!="") ? spriteBarsComponent : rectangleBarsComponent
 
         // for testing individually
         //sourceComponent: rectangleBarsComponent
@@ -102,43 +91,29 @@ Rectangle {
             width: healthbar.width
             height: healthbar.height
 
-            SingleSpriteFromSpriteSheet {
+
+            MultiResolutionImage {
                 id: greenHealthbarSprite
-                // this should be the same like for squaby!
-                spriteSheetSource: healthbar.spriteSheetSource
+//                filename: healthbar.spriteSheetSource
+                source: "../../assets/img/menu_labels/green.png"
                 // there must be a 1 pixel wide border (thus the image is 3x3 pixels), otherwise the texture will look blurred
                 // these must get set explicitly from outside!
-                frameX: alivePixelX
-                frameY: alivePixelY
-                frameWidth: 1
-                frameHeight: 1
                 width: healthbar.width*healthbar.percent
                 height: healthbar.height
-
                 translateToCenterAnchor: false
-
-                // NOTE: this is an important performance improvement, to prevent continuously call onWidthChanged!
-                ignoreWidthAndHeightChangedSignals: true
             }
-            SingleSpriteFromSpriteSheet {
+
+            MultiResolutionImage {
                 id: redHealthbarSprite
-                // this should be the same like for squaby!
-                spriteSheetSource: healthbar.spriteSheetSource
+//                filename: healthbar.spriteSheetSource
+                source: "../../assets/img/menu_labels/red.png"
                 // there must be a 1 pixel wide border (thus the image is 3x3 pixels), otherwise the texture will look blurred
                 // these must get set explicitly from outside!
-                frameX: diedPixelX
-                frameY: diedPixelY
-                frameWidth: 1
-                frameHeight: 1
                 width: healthbar.width*(1-healthbar.percent)
                 height: healthbar.height
 
                 translateToCenterAnchor: false
-
                 anchors.right: parent.right
-
-                // NOTE: this is an important performance improvement, to prevent continuously call onWidthChanged!
-                ignoreWidthAndHeightChangedSignals: true
             }
         } // end of Item
     } // end of component
@@ -165,8 +140,6 @@ Rectangle {
                 // red
                 color: "#e00f0f"
                 anchors.right: parent.right
-                //x:0
-                //y:10
             }
         } // end of item
     }// end of component

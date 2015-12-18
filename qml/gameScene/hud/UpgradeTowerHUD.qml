@@ -1,5 +1,5 @@
-import QtQuick 1.1
-import VPlay 1.0
+import QtQuick 2.0
+import VPlay 2.0
 
 Row {
   id: upgradeTowerHUD
@@ -8,8 +8,10 @@ Row {
   UpgradeWeapon {
     id: repairUpgrade
     upgradeType: "repair"
-    source: "repair.png"
-    onClicked: towerUpgradeEffect.play();
+    source: "../../../assets/img/menu_labels/repair.png"
+    onClicked: {
+      towerUpgradeEffect.play();
+    }
     // this is invisible in the default state! must be in upgradingTower state so it gets visible!
     visible: false
   }
@@ -17,20 +19,23 @@ Row {
   UpgradeWeapon {
     id: rangeUpgrade
     upgradeType: "range"
-    onClicked: towerUpgradeEffect.play();
+    onClicked: {
+      towerUpgradeEffect.play();
+    }
   }
 
   UpgradeWeapon {
     id: shootDelayUpgrade
     upgradeType: "shootDelay"
-    onClicked: towerUpgradeEffect.play();
-
+    onClicked: {
+      towerUpgradeEffect.play();
+    }
   }
   // source and price get set for the upgrades by code when a selected_tower event is received
   // the source gets set in the UpgradeWeapon itself
   UpgradeWeapon {
     id: sellButton
-    source: "sell.png"
+    source: "../../../assets/img/menu_labels/sell.png"
     upgradeType: "sell"
 
     // the sell button is not bound to the default behavior (only get available when the player gold is higher than the cost)
@@ -49,15 +54,15 @@ Row {
       towerSellEffect.play();
     }
 
-    Sound {
+    SoundEffectVPlay {
       id: towerSellEffect
-      source: "../../snd/towerDestruct.wav"
+      source: "../../../assets/snd/towerDestruct.wav"
     }
   }
 
-  Sound {
+  SoundEffectVPlay {
     id: towerUpgradeEffect
-    source: "../../snd/towerUpgrade.wav"
+    source: "../../../assets/snd/towerUpgrade.wav"
   }
 
   function towerSelected(message) {
@@ -71,6 +76,10 @@ Row {
     if(towerType === "nailgun" || towerType === "turbine") {
       shootDelayUpgrade.upgradeType = "shootDelay";
     } else if(towerType === "flamethrower") {
+      shootDelayUpgrade.upgradeType = "damagePerSecond";
+    } else if(towerType === "taser") {
+      shootDelayUpgrade.upgradeType = "damagePerSecond";
+    } else if(towerType === "tesla") {
       shootDelayUpgrade.upgradeType = "damagePerSecond";
     }
 

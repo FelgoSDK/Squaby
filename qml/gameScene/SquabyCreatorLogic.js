@@ -37,6 +37,9 @@ function initialize() {
   squabyCreator.state = ""
 
 
+  // warning no waves set
+  if(!getCurrentWave())
+    return
 
   currentSquabyDelay = getCurrentWave().squabyDelay;
 
@@ -90,6 +93,22 @@ var waves = [
 ]
 */
 
+function updatePauseBetweenWaves() {
+  if(!getCurrentWave()) {
+    return
+  }
+
+  // if the pauseBetweenWaves property is set, set it directly
+  if(getCurrentWave().pauseBetweenWaves)
+      currentPauseBetweenWaves = getCurrentWave().pauseBetweenWaves;
+  // otherwise, decrease it by specified amount
+  else
+      currentPauseBetweenWaves -= pauseBetweenWavesDecrementPerWave;
+  // guarantee the calculated value never gets below the minimum threshold
+  if(currentPauseBetweenWaves<minimumPauseBetweenWaves)
+      currentPauseBetweenWaves = minimumPauseBetweenWaves;
+}
+
 function timerTriggered() {
 
   if(isCurrentlyCreating) {
@@ -110,18 +129,34 @@ function timerTriggered() {
     //print("__lastCreationTimer: " + __lastCreationTimer);
     //print("Core.time: " + Core.time);
 
+    // use last wave for endless run
+    if(endlessGameRunning) {
+      currentWave = waves.length-1
+      internalWaveIndex = currentWave
+      __isWaitingForNextWave = true
+    }
+
     // also use the lastCreationTimer for measuring the time elapsed since the last squaby in this wave was created (and since then it is in the paused state)
     if(__isWaitingForNextWave) {
 
-        __isWaitingForNextWave = false;
-
         currentWave++;
+
+        // also increase the internalWaveIndex
+        internalWaveIndex = currentWave
+
         // e.g. when waves.length = 12, the maximum number of internalWaveIndex is also 12, because below the index is accessed with i-1
         // out-of-bounds check, is not necessary because also checked above
-        if(currentWave<=waves.length) {
-          // also increase the internalWaveIndex
-          internalWaveIndex = currentWave
-          print("SquabyCreatorLogic: the end of the waves is reached! the last wave setting gets repeated endlessly");
+        if(currentWave>waves.length && !endlessGameRunning) {
+          // stop next level logic will take over the role of a restart if endless game.
+          squabyCreator.stop()
+          isCurrentlyCreating = false;
+          return
+        }
+
+        // warning no waves set
+        if(!getCurrentWave()) {
+          isCurrentlyCreating = false
+          return
         }
 
         // if the squabyDelay property is set, set it directly
@@ -134,28 +169,24 @@ function timerTriggered() {
         if(currentSquabyDelay<minimumSquabyDelay)
             currentSquabyDelay = minimumSquabyDelay;
 
-        // if the pauseBetweenWaves property is set, set it directly
-        if(getCurrentWave().pauseBetweenWaves)
-            currentPauseBetweenWaves = getCurrentWave().pauseBetweenWaves;
-        // otherwise, decrease it by specified amount
-        else
-            currentPauseBetweenWaves -= pauseBetweenWavesDecrementPerWave;
-        // guarantee the calculated value never gets below the minimum threshold
-        if(currentPauseBetweenWaves<minimumPauseBetweenWaves)
-            currentPauseBetweenWaves = minimumPauseBetweenWaves;
+        updatePauseBetweenWaves()
 
         if(getCurrentWave().amount)
           amountSquabiesInCurrentWave = getCurrentWave().amount
 
         squabiesBuiltInCurrentWave = 0;
+
+        __isWaitingForNextWave = false;
     }
 
-    // dont put this code into an else-block, because also if the wave was changed
+    // don't put this code into an else-block, because also if the wave was changed
 
     //var entity = EntityFactory.createEntityAndEngage(getSquabyType());
     // the default pose (-20, 40) is fine
 
-    entityManager.createEntityFromComponent(getSquabyType());
+    //entityManager.createEntityFromComponent(getSquabyType());
+    entityManager.createEntityFromEntityTypeAndVariationType( {entityType: "squaby", variationType: getSquabyType()} );
+    squabyCreator.currentActiveSquabies++
 
     squabiesBuiltInCurrentWave++;
 
@@ -168,6 +199,10 @@ function timerTriggered() {
         __isWaitingForNextWave = true;
 
         squabyCreator.state = "waitingForNextWave";
+
+        // update time which could differ after the first wave when settings have not been set
+        updatePauseBetweenWaves()
+
         setIntervalOfCreationTimer(currentPauseBetweenWaves);
 
 
@@ -186,13 +221,45 @@ function timerTriggered() {
 }
 
 function getCurrentWave() {
+  if(waves.length < internalWaveIndex-1 || waves.length === 0) {
+    console.debug("SquabyCreatorLogic: Out of bound when accessing waves!")
+    return 0
+  }
     // currentWave starts with 1, not with 0!
   // this is important to use the internalWaveIndex here, not currentWave
     return waves[internalWaveIndex-1];
 }
 
 function getSquabyType() {
-    var types = getCurrentWave().types;
+    var types = [] //getCurrentWave().types;
+
+  if(!getCurrentWave())
+    return "squabyYellow"
+
+    var type = {}
+    type.type = "squabyYellow"
+    type.p = getCurrentWave().yellow
+    types.push(type)
+    type = {}
+    type.type = "squabyOrange"
+    type.p = getCurrentWave().orange
+    types.push(type)
+    type = {}
+    type.type = "squabyRed"
+    type.p = getCurrentWave().red
+    types.push(type)
+    type = {}
+    type.type = "squabyGreen"
+    type.p = getCurrentWave().green
+    types.push(type)
+    type = {}
+    type.type = "squabyBlue"
+    type.p = getCurrentWave().blue
+    types.push(type)
+    type = {}
+    type.type = "squabyGrey"
+    type.p = getCurrentWave().grey
+    types.push(type)
 
     var nextCreationType = types[0].type;
     // Math.random returns a number  0 <= x < 1

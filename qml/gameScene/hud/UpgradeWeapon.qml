@@ -1,4 +1,4 @@
-import QtQuick 1.0
+import QtQuick 2.0
 
 //Image {
 Item {
@@ -20,7 +20,7 @@ Item {
     property string selectedTowerId: "undefined"
     property string selectedTowerType: "undefined"
 
-    property alias source: upgradeWeaponSprite.source
+    property string source
 
     // this can be handled by the hud, especially for the sell button to change the upgradeState of the hud back to the buy state
     signal clicked
@@ -76,6 +76,10 @@ Item {
                     source = "nailgunUpgradeRange.png";
                 else if(selectedTowerType === "flamethrower")
                     source = "flamethrowerUpgradeRange.png";
+                else if(selectedTowerType === "taser")
+                    source = "taserUpgradeRange.png";
+                else if(selectedTowerType === "tesla")
+                    source = "teslaUpgradeRange.png";
                 else if(selectedTowerType === "turbine")
                     source = "turbineUpgradeRange.png"
             // if other upgrade is at level 1 and this upgrade is not fully built, this image needs to be replaced with full upgrade one
@@ -84,6 +88,10 @@ Item {
                     source = "nailgunUpgradeBoth.png";
                 else if(selectedTowerType === "flamethrower")
                     source = "flamethrowerUpgradeBoth.png";
+                else if(selectedTowerType === "taser")
+                    source = "taserUpgradeBoth.png";
+                else if(selectedTowerType === "tesla")
+                    source = "teslaUpgradeBoth.png";
                 else if(selectedTowerType === "turbine")
                     source = "turbineUpgradeBoth.png"
         } else if(activeUpgrade.type === "shootDelay" || activeUpgrade.type === "damagePerSecond" ) {
@@ -93,6 +101,10 @@ Item {
                     source = "nailgunUpgradeFire.png";
                 else if(selectedTowerType === "flamethrower")
                     source = "flamethrowerUpgradeFire.png";
+                else if(selectedTowerType === "taser")
+                    source = "taserUpgradeFire.png";
+                else if(selectedTowerType === "tesla")
+                    source = "teslaUpgradeFire.png";
                 else if(selectedTowerType === "turbine")
                     source = "turbineUpgradeFire.png"
             // if other upgrade is at level 1 and this upgrade is not fully built, this image needs to be replaced with full upgrade one
@@ -101,6 +113,10 @@ Item {
                     source = "nailgunUpgradeBoth.png";
                 else if(selectedTowerType === "flamethrower")
                     source = "flamethrowerUpgradeBoth.png";
+                else if(selectedTowerType === "taser")
+                    source = "taserUpgradeBoth.png";
+                else if(selectedTowerType === "tesla")
+                    source = "teslaUpgradeBoth.png";
                 else if(selectedTowerType === "turbine")
                     source = "turbineUpgradeBoth.png"
         }
@@ -112,7 +128,8 @@ Item {
     SingleSquabySprite {
         id: upgradeWeaponSprite
         // the source gets set in setUpgradeButtonFromEvent()
-
+        // add initial sprite so the sprite sheet has the correct size when changing the source.
+        source: upgradeWeapon.source !== "" ? "../../../assets/img/menu_labels/" + upgradeWeapon.source : upgradeWeapon.source
     }
 
     PriceTag {
@@ -131,7 +148,7 @@ Item {
 //                towerId: selectedTowerId,
 //                upgradeType: upgradeWeapon.upgradeType
 //            }
-            //engine.createGuiEvent(guiEvent);            
+            //engine.createGuiEvent(guiEvent);
 
             // check if the player has enough money, and this upgrade is not fully used
             // this gets also checked in upgradeTower() though, but it can be checked here already to avoid checking again in upgradeTower()
@@ -142,6 +159,10 @@ Item {
                     console.debug("UpgradeWeapon: WARNING: the tower with id '", selectedTowerId, "' was not found in the entity array! no upgrade possible!")
                     return;
                 }
+
+                if(!tutorials.nextAction("upgradeButton",upgradeType))
+                  return
+
                 selectedTower.upgradeTower(upgradeType);
 
                 // decrease the player gold by the cost of this upgrade

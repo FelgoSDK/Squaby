@@ -1,4 +1,4 @@
-import QtQuick 1.0
+import QtQuick 2.0
 
 //Image {
 Item {
@@ -17,7 +17,7 @@ Item {
 
     SingleSquabySprite {
         id: upgradeWeaponSprite
-        source: "sell.png"
+        source: "../../../assets/img/menu_labels/sell.png"
     }
 
 

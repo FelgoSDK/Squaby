@@ -1,139 +1,179 @@
-import QtQuick 1.1
-import VPlay 1.0
+import QtQuick 2.0
+import VPlay 2.0
 import "../../levels" // for the MenuButton, which is also used for the level laoding
 
-Item {
-    anchors.fill: parent
-    anchors.centerIn: parent
-    id: performanceOverlay
-    opacity: 0.7
+Column {
+  Item {
+    width: perfPlayButton.width
+    height: perfPlayButton.height
+    property bool gameIsRunning: true
 
-    // ATTENTION: flickable does not automatically clip its contents! so always use it as fullscreen item at the moment!
-    Flickable {
-        id: flickable
-        //anchors.fill: parent
-        anchors.centerIn: parent
-        // never make the flickable bigger than the parent, if the columns is smaller (so less items), the flickable should not be as big as the item!
-        width: (column.width<parent.width) ? column.width : parent.width
-        height: (column.height<parent.height) ? column.height : parent.height
-
-        contentWidth: column.width
-        contentHeight: column.height
-        flickableDirection: Flickable.VerticalFlick
-
-        Column {
-            id: column
-            spacing: 2
-            anchors.centerIn: parent
-    //        MenuButton {
-    //            color: "red"
-    //            text: "Animations"
-    //            onClicked: entityManager.toggleAnimations();
-    //        }
-            MenuButton {
-                color: "darkorange"
-                text: "Level Mode"
-                onClicked: scene.state = "levelEditing"
-            }
-            MenuButton {
-                color: "green"
-                text: "Healthbar"
-                onClicked: entityManager.toggleHealthbar();
-            }
-            // PathMovement cant be toggled any more - this was only used for sprite testing, see spriteManager.js in performanceTests for testing the impact of that!
-//            MenuButton {
-//                color: "blue"
-//                text: "PathMovement"
-//                onClicked: entityManager.togglePathMovement();
-//            }
-            MenuButton {
-                color: "black"
-                text: "Toggle Raster"
-                onClicked:  {
-                    raster.visible = !raster.visible
-                }
-            }
-
-            // toggles the visibility e.g. of the HUD, frontObjects, etc.
-            MenuButton {
-                color: "brown"
-                text: "Toggle visibilities"
-                onClicked:  {
-
-                    var sceneState = scene.state;
-                    if(sceneState === "ingameMenuPerformanceTesting") {
-                        scene.state = "hideObstacles";
-                    } else if(sceneState === "hideObstacles") {
-                        scene.state = "hideHUD";
-                    } else if(sceneState === "hideHUD") {
-                        // reset here again
-                        scene.state = "hideHUDAndObstacles";
-                    } else if(sceneState === "hideHUDAndObstacles") {
-                        // reset here again
-                        scene.state = "hideAll";
-                    } else {
-                        // reset here again
-                        scene.state = "ingameMenuPerformanceTesting";
-                    }
-                }
-            }
-
-            MenuButton {
-                color: "cyan"
-                text: "Toggle Wave"
-                onClicked:  {
-                    squabyCreator.enabled = !squabyCreator.enabled
-                }
-            }
-
-            MenuButton {
-                color: "orange"
-                text: "Toggle Physics"
-                onClicked:  {
-                    physicsWorld.debugDrawVisible = !physicsWorld.debugDrawVisible
-                }
-            }
-
-            MenuButton {
-                color: "darkcyan"
-                text: "Toggle Sounds"
-                onClicked:  {
-                    settings.soundEnabled = !settings.soundEnabled
-
-                    if(!settings.soundEnabled) {
-                        backgroundMusic.stop();
-                    } else {
-                        backgroundMusic.play();
-                    }
-                }
-            }
-
-            MenuButton {
-                color: "darkgreen"
-                text: "Toggle Particles"
-                onClicked:  {
-                    settings.particlesEnabled = !settings.particlesEnabled
-                }
-            }
-
-            MenuButton {
-                color: "darkblue"
-                text: "Toggle TestSquaby"
-                onClicked:  {
-                    // this can be used to test performance with a strong squaby that does not get killed that easily
-                    level.createYellowSquaby = !level.createYellowSquaby
-                }
-            }
-
-            MenuButton {
-                color: "darkgrey"
-                text: "Toggle Pooling"
-                onClicked:  {
-                    entityManager.poolingEnabled = !entityManager.poolingEnabled;
-                }
-            }
+    SingleSquabySprite {
+      id: perfPlayButton
+      source: parent.gameIsRunning ? "../../../assets/img/menu_labels/perf_pause.png" : "../../../assets/img/menu_labels/perf_play.png"
+    }
+    MouseArea {
+      anchors.fill: perfPlayButton
+      onClicked: {
+        if(parent.gameIsRunning) {
+          scene.pauseScene()
+        } else {
+          scene.enterScene()
         }
+        parent.gameIsRunning^=1
+      }
+    }
+  }
+  Item {
+    width: perfMenuButton.width
+    height: perfMenuButton.height
 
-    } // end of Flickable
+    //Image { // use a res-independent spritesheet instead
+    SingleSquabySprite {
+      id: perfMenuButton
+      source: "../../../assets/img/menu_labels/perf_menu.png"
+    }
+    // the MouseArea must not be a child of SingleSquabySprite, as all the children get overwritten there!
+    MouseArea {
+      anchors.fill: perfMenuButton
+      onClicked: {
+        if(itemEditor.visible) {
+          if(itemEditor.currentEditableType === "Performance Settings") {
+            hud.changeToBuildMenu()
+          } else {
+            itemEditor.currentEditableType = "Performance Settings"
+            itemEditor.searchAndDisplayHeaderGroup("Game Performance")
+          }
+        } else {
+          hud.changeFromBuildMenu()
+          itemEditor.currentEditableType = "Performance Settings"
+          itemEditor.searchAndDisplayHeaderGroup("Game Performance")
+        }
+      }
+    }
+  }
 
+  EditableComponent {
+    id: editableEditorComponent
+
+    editableType: "Performance Settings"
+    // this is needed, because all EditableComponents for type "SquabySettings" have the same property names - this would not work without the defaultGroup set
+    defaultGroup: "Game Performance"
+    preventStorage: true
+
+    properties: {
+      "perfRaster": {"label": "Raster"},
+      //"displayFPS": {"label": "FPS"},
+      "displayHUD": {"label": "HUD"},
+      "displayScore": {"label": "Score"},
+      "displayLifes": {"label": "Lives"},
+      "displayBG": {"label": "Background"},
+      //"waves": {"label": "Waves"},
+      "particles": {"label": "Particles"},
+      //"testSquaby": {"label": "Test Squaby"},
+      "reset": {"label": "Delete All"},
+      "aimingAtNailgun": {"label": "NailGun Aim"},
+      "aimingAtFlamethrower": {"label": "Flamethrower Aim"},
+      "obstacles": {"label": "Obstacles"},
+      "waypoints": {"label": "Waypoints"},
+      //"ftShooting": {"label": "Flamethrower active"},
+      //"ftUpgrade": {"label": "Flamethrower upgrade"},
+      //"sounds": {"label": "Sounds"}
+    }
+  }
+
+  property bool perfRaster: true
+  onPerfRasterChanged: raster.visible ^=1
+
+  //property bool displayFPS: window.displayFpsEnabled
+  //onDisplayFPSChanged: window.displayFpsEnabled = displayFPS
+
+  property bool displayHUD: true
+  onDisplayHUDChanged: hud.visible ^=1
+
+  property bool displayScore: true
+  onDisplayScoreChanged: scoreRow.visible ^=1
+
+  property bool displayLifes: true
+  onDisplayLifesChanged: livesRow.visible ^=1
+
+  property bool displayBG: true
+  onDisplayBGChanged: levelBackground.visible ^=1
+
+  property bool waves: false
+  onWavesChanged: squabyCreator.enabled ^=1
+
+  property bool particles: settings.particlesEnabled
+  onParticlesChanged: settings.particlesEnabled = particles
+
+  property bool testSquaby: false
+  onTestSquabyChanged: level.createYellowSquaby ^=1
+
+  property bool reset: true
+  onResetChanged: scene.removeAllSquabiesAndTowers()
+
+  property bool aimingAtNailgun: true
+  onAimingAtNailgunChanged: {
+    var obstacles = entityManager.getEntityArrayByType("nailgun")
+    for(var ii=0; ii<obstacles.length; ++ii) {
+      obstacles[ii].emitAimingAtTargetSignal ^= 1
+    }
+  }
+
+  property bool aimingAtFlamethrower: true
+  onAimingAtFlamethrowerChanged: {
+    var obstacles = entityManager.getEntityArrayByType("flamethrower")
+    for(var ii=0; ii<obstacles.length; ++ii) {
+      obstacles[ii].emitAimingAtTargetSignal ^= 1
+    }
+  }
+
+  property bool obstacles: true
+  onObstaclesChanged: {
+    var obstacles = entityManager.getEntityArrayByType("obstacle")
+    for(var ii=0; ii<obstacles.length; ++ii) {
+      obstacles[ii].visible ^= 1
+    }
+  }
+
+  property bool waypoints: true
+  onWaypointsChanged: {
+    var obstacles = entityManager.getEntityArrayByType("waypoint")
+    for(var ii=0; ii<obstacles.length; ++ii) {
+      obstacles[ii].visible ^= 1
+    }
+    obstacles = entityManager.getEntityArrayByType("pathSection")
+    for(var ii=0; ii<obstacles.length; ++ii) {
+      obstacles[ii].visible ^= 1
+    }
+  }
+
+  property bool ftShooting: false
+  onFtShootingChanged: {
+    var obstacles = entityManager.getEntityArrayByType("flamethrower")
+    for(var ii=0; ii<obstacles.length; ++ii) {
+      obstacles[ii].running = ftShooting
+    }
+  }
+
+  property bool ftUpgrade: false
+  onFtUpgradeChanged: {
+    var obstacles = entityManager.getEntityArrayByType("flamethrower")
+    for(var ii=0; ii<obstacles.length; ++ii) {
+      // can be range or shootDelay or repair damagePerSecond
+      obstacles[ii].upgradeTower("damagePerSecond")
+    }
+  }
+
+  property bool sounds: settings.soundEnabled
+  onSoundsChanged: {
+    settings.soundEnabled = sounds
+
+    if(!settings.soundEnabled) {
+      backgroundMusic.stop();
+    } else {
+      backgroundMusic.play();
+    }
+  }
 }
+

@@ -1,13 +1,16 @@
 {
-  "title": "SquabyDev",
+  "title": "Squaby Dev",
   "identifier": "net.vplay.demos.SquabyDev",
   "orientation": "landscape",
-  "versioncode": 1,
+  "versioncode": 10,
   "versionname": "1.0",
-  "plugins": [ "gamecenter", "flurry", "facebook" ],
+  "author": "V-Play GmbH",
+  "plugins": [ "store", "flurry", "facebook", "gui" , "chartboost" , "admob"],
+
+  "stage": "test",
 
   "ios": {
     "prerendered_icon": true,
-    "url_schemes": [ "fb489472511074353" ]
+    "url_schemes": [ "fb1514388122117426" ]
   }
 }

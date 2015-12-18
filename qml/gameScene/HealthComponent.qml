@@ -1,5 +1,5 @@
-import QtQuick 1.1
-import VPlay 1.0
+import QtQuick 2.0
+import VPlay 2.0
 
 //import "HealthComponentLogic.js" as Logic
 
@@ -28,13 +28,17 @@ ComponentBase {
     property variant damages: {
         "nailgun": { value: 20, type: "applySimple"},
         // ATTENTION: this isnt used for squaby yet! instead, the time-based damage is calculated in each tower!
-        "flamethrower": { value: 40, type: "perSecond"}
+        "flamethrower": { value: 40, type: "perSecond"},
+        "taser": { value: 40, type: "perSecond"},
+        "tesla": { value: 40, type: "perSecond"}
     }
 
     // gets overwritten for each squaby type, so the resistance against each weapon can be defined here
     property variant damageMultiplicators: {
         "nailgun": 1,
-        "flamethrower": 1
+        "flamethrower": 1,
+        "taser": 1,
+        "tesla": 1
     }
 
     /// Set this to true if the entity should be destroyed when the health get below zero. Defaults to false.

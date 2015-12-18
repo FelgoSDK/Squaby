@@ -1,4 +1,5 @@
-import QtQuick 1.1
+import QtQuick 2.0
+import VPlay 2.0
 
 // this is a combination of all properties for balancing for the whole game - modify this to maximize the fun and also tweaking per level would be possible
 Item {
@@ -12,92 +13,50 @@ Item {
 
   property alias nailgun: nailgun
   property alias flamethrower: flamethrower
+  property alias taser: taser
+  property alias tesla: tesla
   property alias turbine: turbine
 
   // for testing, set gold & lives high, so the functionality can be tested
   // set the initial gold, so the user can upgrade once, but not buy a flamegun from the beginning! (flamethrower start cost=50)
-  property int playerStartGold: 40 //900
-  property int playerStartLives: 10 //50
-
-  // this is a factor that is multiplied with every damageMultiplicator value for each squaby!
-  // so by setting it lower than 1, it makes the game more difficult! if setting higher than 1, it makes it easiser because the squabies are more vulnerable for all weapons!
-  property real difficultyFactor: 0.7
+  property int playerStartGold: 40 // default values need to be changed in LevelEmpty too when they get changed here!
+  property int playerStartLives: 5 // default values need to be changed in LevelEmpty too when they get changed here!
 
   SquabyBalancingSettings {
     // highly vulnerable for fire&nailgun
     id: squabyYellow
     variationType: "squabyYellow"
-    score: 5
-    gold: 5
-    health: 100
-    // should die with 2 shots from nailgun
-    damageMultiplicatorNailgun: difficultyFactor*1.5
-    // highly vulnerable against flamethrowers
-    damageMultiplicatorFlamethrower: difficultyFactor*1.5
-    // speed of 70 will lead to 15 seconds pathDuration
-    pathMovementPixelsPerSecond: 70
   }
 
 
   SquabyBalancingSettings {
-    // very fast, vulnerable for fire, resistang against nailgun
-    // otherwise similar to yellow one!
+    // very fast, vulnerable for nailgun, resistang against fire
     id: squabyGreen
     variationType: "squabyGreen"
-    score: 25
-    gold: 10
-    health: 100
-    damageMultiplicatorNailgun: difficultyFactor*0.3
-    damageMultiplicatorFlamethrower: difficultyFactor*1.5
-    pathMovementPixelsPerSecond: 100
   }
 
   SquabyBalancingSettings {
-    // high fire resistance, vulnerable against nailgun
+    // nailgun resistance, vulnerable against fire
     id: squabyOrange
     variationType: "squabyOrange"
-    score: 10
-    gold: 6
-    health: 100
-    damageMultiplicatorNailgun: difficultyFactor*0.4
-    damageMultiplicatorFlamethrower: difficultyFactor*0.2
-    pathMovementPixelsPerSecond: 75
   }
 
   SquabyBalancingSettings {
-    // maximum fire resistance
+    // more nailgun resistance, vulnerable against fire
     id: squabyRed
     variationType: "squabyRed"
-    score: 20
-    gold: 8
-    health: 100
-    damageMultiplicatorNailgun: difficultyFactor*0.3
-    damageMultiplicatorFlamethrower: difficultyFactor*0.1
-    pathMovementPixelsPerSecond: 80
   }
 
   SquabyBalancingSettings {
-    // slow, high nailgun resistance, high lives
+    // slow, resistance against all
     id: squabyBlue
     variationType: "squabyBlue"
-    score: 35
-    gold: 14
-    health: 100
-    damageMultiplicatorNailgun: difficultyFactor*0.08
-    damageMultiplicatorFlamethrower: difficultyFactor*0.06
-    pathMovementPixelsPerSecond: 65
   }
 
   SquabyBalancingSettings {
-    // hardest enemy, maximum lives, max. resistance of nailgun
+    // hardest enemy, maximum lives, max. resistance of nailgun and fire
     id: squabyGrey
     variationType: "squabyGrey"
-    score: 50
-    gold: 18
-    health: 100
-    damageMultiplicatorNailgun: difficultyFactor*0.03
-    damageMultiplicatorFlamethrower: difficultyFactor*0.02
-    pathMovementPixelsPerSecond: 50
   }
 
 
@@ -105,28 +64,69 @@ Item {
 
   TowerBalancingSettings {
     id: nailgun
+    variationType: "nailgun"
+
+    useShootDelayInMilliSeconds: true
     shootDelayInMilliSeconds: 600
     cost: 20
     saleRevenue: 5
     upgradeLevels: {
-        "range": [{"level": 1, "cost": 10, "value": 5*scene.gridSize, "additionalSaleRevenue": 5}],
-        "shootDelay": [{"level": 1, "cost": 15, "value": 450, "additionalSaleRevenue": 10}]
+        "range": [{"level": 1, "cost": 5, "value": 5*scene.gridSize, "additionalSaleRevenue": 5}],
+        "shootDelay": [{"level": 1, "cost": 10, "value": 450, "additionalSaleRevenue": 10}]
     }
+
+
   }
   TowerBalancingSettings {
     id: flamethrower
-    //shootDelayInMilliSeconds: 600 - no shootDelay is set for flamethrower, it fires continuously
+    variationType: "flamethrower"
+
+    // use shootDelayInMilliSeconds as taserAreaDamagePerSecond for easier balancing
+    shootDelayInMilliSeconds: 40
     cost: 50
     saleRevenue: 25
+    upgradeLevels: {
+      "range": [{"level": 1, "cost": 15, "value": 5*scene.gridSize, "additionalSaleRevenue": 10}],
+      "damagePerSecond": [{"level": 1, "cost": 35, "value": 55, "additionalSaleRevenue": 20}]
+    }
+    /// The squaby health component gets reduced by that amount. This value can be upgraded with the second upgrade (tho 2 towers, so the flamethrower applies more damage).
+    property real flameAreaDamagePerSecond: shootDelayInMilliSeconds
+  }
+  TowerBalancingSettings {
+    id: taser
+    variationType: "taser"
+
+    // use shootDelayInMilliSeconds as taserAreaDamagePerSecond for easier balancing
+    shootDelayInMilliSeconds: 40
+    cost: 45
+    saleRevenue: 25
+    upgradeLevels: {
+      "range": [{"level": 1, "cost": 15, "value": 5*scene.gridSize, "additionalSaleRevenue": 10}],
+      "damagePerSecond": [{"level": 1, "cost": 35, "value": 55, "additionalSaleRevenue": 20}]
+    }
+    /// The squaby health component gets reduced by that amount. This value can be upgraded with the second upgrade (tho 2 towers, so the taser applies more damage).
+    property real taserAreaDamagePerSecond: shootDelayInMilliSeconds
+  }
+  TowerBalancingSettings {
+    id: tesla
+    variationType: "tesla"
+
+    // use shootDelayInMilliSeconds as taserAreaDamagePerSecond for easier balancing
+    shootDelayInMilliSeconds: 60
+    cost: 60
+    saleRevenue: 45
     upgradeLevels: {
       "range": [{"level": 1, "cost": 20, "value": 5*scene.gridSize, "additionalSaleRevenue": 10}],
       "damagePerSecond": [{"level": 1, "cost": 40, "value": 55, "additionalSaleRevenue": 20}]
     }
-    /// The squaby health component gets reduced by that amount. This value can be upgraded with the second upgrade (tho 2 towers, so the flamethrower applies more damage).
-    property real flameAreaDamagePerSecond: 40
+    /// The squaby health component gets reduced by that amount. This value can be upgraded with the second upgrade (tho 2 towers, so the tesla applies more damage).
+    property real teslaAreaDamagePerSecond: shootDelayInMilliSeconds
   }
   TowerBalancingSettings {
     id: turbine
+    variationType: "turbine"
+
+    useShootDelayInMilliSeconds: true
     shootDelayInMilliSeconds: 7000
     cost: 90
     saleRevenue: 35

@@ -1,105 +1,114 @@
-import QtQuick 1.1
-import VPlay 1.0
+import QtQuick 2.0
+import VPlay 2.0
 
 TowerBaseSprite {
   id: turbineSprite
+
+  // all upgrade states have the same base image
+  spriteSheetSource: "../../assets/img/spritesheets/turbine/1-Turbine_base.png"
+//  property string spriteSheetSourceTower: frameElement+"-Turbine_idle.png"
   property alias running: explodeSprite.running
 
-  spriteSheetSource: "../img/turbine-sd.png"
-  defaultFrameWidth: 28
-  defaultFrameHeight: 28
+  property alias sprite: explodeSprite
 
+  scale: 0.875
 
-  SpriteSequence {
-    id: explodeSprite
-    // if goalSprite is not set, the first Sprite is used
+  Item {
+    rotation: turbineSprite.parent.rotation
+    SpriteSequenceVPlay {
+      id: explodeSprite
+      anchors.centerIn: parent
 
-    spriteSheetSource: turbineSprite.spriteSheetSource
+      defaultSource: "../../assets/img/spritesheets/turbine/turbine.png"
 
-    // 0 degrees should point to the right, not to the bottom like the image currently is
-    rotation: rotationOffset
+      // the animation should NOT run from the beginning! once jumpTo is called, it gets set to true automatically!
+//      running: false
 
-    // must be initialized with false, by default it is running!
-    running: false
+      SpriteVPlay {
+        id: idle
+        name: "idle"
+        startFrameColumn: 1
+        startFrameRow: frameElement
+        frameCount: 1
+        frameWidth: 32
+        frameHeight: 32
+//        frameRate: 0 // with a frameCount of 10 and a frameRate of 60 (= frameDuration of 25ms), the whole animation takes 167ms to complete
+//        restoreOriginalFrame: false // stop with the last frame (the exploded state)
+//        loop: false
+        // setting a long frameDuration is a performance improvement, because the animation isnt switched internally then
+        frameDuration: 100000
+      }
 
-    Sprite {
-      id: explodeAnimation
-      name: "explode"
-      frameWidth: turbineSprite.contentScaledFrameWidth
-      frameHeight: turbineSprite.contentScaledFrameHeight
-      scale: turbineSprite.towerBaseContentScaleFactor
-      frameCount: 5
-      startFrameColumn: 3
-      frameRate: 60 // with a frameCount of 10 and a frameRate of 40 (= frameDuration of 25ms), the whole animation takes 250ms to complete
-      loop: false
-      restoreOriginalFrame: false // stop with the last frame (the exploded state)
+      SpriteVPlay {
+        id: explodeAnimation
+        name: "explode"
+        startFrameColumn: 2
+        startFrameRow: frameElement
+        frameCount: 4
+        frameWidth: 32
+        frameHeight: 32
+        frameRate: 10 // with a frameCount of 10 and a frameRate of 60 (= frameDuration of 25ms), the whole animation takes 167ms to complete
+//        restoreOriginalFrame: false // stop with the last frame (the exploded state)
+//        loop: false
+        to: { "explodeLastFrame": 1 }
+      }
 
-      // set the same row for all sprites
-      startFrameRow: turbineSprite.startFrameRow
-
-      // this must not be set to true, because it gets set to true by the SpriteSequence class when the nailgun should fire (and not from the start) - default is false, which is correct here
-      //running: true
+      SpriteVPlay {
+        id: explodeLastFrameAnimation
+        name: "explodeLastFrame"
+        startFrameColumn: explodeAnimation.startFrameColumn+explodeAnimation.frameCount - 1
+        startFrameRow: frameElement
+        frameCount: 1
+        frameWidth: 32
+        frameHeight: 32
+        frameRate: 100000
+      }
     }
 
-  }
-  SpriteSequence {
-    id: whirlSprite
-    // by default, the turbine should not whirl and not be visible!
-    visible: false
+    SpriteSequenceVPlay {
+      id: whirlSprite      
 
-    spriteSheetSource: turbineSprite.spriteSheetSource
+      defaultSource: "../../assets/img/spritesheets/turbine/whirl.png"
 
-    // 0 degrees should point to the right, not to the bottom like the image currently is
-    rotation: rotationOffset
+      // by default, the turbine should not whirl and not be visible!
+      visible: false
 
-    // only run the animation when this sprite is visible (state=whirl)
-    //running: visible
-    running: false
+      // only run the animation when this sprite is visible (state=whirl)
+      running: false
 
+      x: -whirlSprite.width/2
+      // the center of the sprite is not the whirl origin, so move this sprite by hand so it looks good
+      // this offset is an arbitrary number, tested visually!
+      y: -16
 
-    // the center of the sprite is not the whirl origin, so move this sprite by hand so it looks good
-    // this offset is an arbitrary number, tested visually!
-    x: - turbineSprite.width
+      SpriteVPlay {
+        id: whirlAnimation
+        name: "whirl"
+//        frameNames: [
+//          "wrl-Turbine_01.png",
+//          "wrl-Turbine_02.png",
+//          "wrl-Turbine_03.png"
+//        ]
 
-    Sprite {
-      id: whirlAnimation
-      name: "whirl"
-      frameY: turbineSprite.contentScaledFrameHeight * 4 // the animation starts below the differnt turbine upgrade states (4rows a 28px high)
-      frameWidth: turbineSprite.contentScaledFrameWidth * 2
-      frameHeight: turbineSprite.contentScaledFrameHeight * 2
-      scale: turbineSprite.towerBaseContentScaleFactor
-      frameCount: 3
-      frameRate: 60
-      loop: true
+        frameCount: 3
+        frameRate: 60
+        frameWidth: 64
+        frameHeight: 64
+//        loop: true
+      }
 
-      // this must not be set to true, because it gets set to true by the SpriteSequence class when the nailgun should fire (and not from the start) - default is false, which is correct here
-      //running: true
     }
-
   }
 
   function explode() {
-    // there is no difference now in calling jumpTo or running=true! unless that running=true doesnt lead to a jumpTo if the spriteImage is already running!
-    //explodeSprite.jumpTo("explode");
-    explodeSprite.running = true;
+    explodeSprite.jumpTo("explode");
   }
 
   function repair() {
-    console.debug("TurbineSprite: repair()");
-    // reset the image to the fully working turbine not the destroyed endStateFrame
-    // if __frame gets set to 0, the startFrameCol frame will be used!
-    // setting __frame is not supported by CocosWrapper, thus use setFrameNumber below!
-    //explodeAnimation.__frame = 0;
-
-    // is also received by cocos
-    explodeAnimation.setFrameNumber(0);
+    explodeSprite.jumpTo("idle");
   }
 
   states: [
-    //        State {
-    //            // this is the default state
-    //            name: ""
-    //        },
     State {
       name: "whirl"
       PropertyChanges { target: whirlSprite; visible: true}

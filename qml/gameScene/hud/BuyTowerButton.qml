@@ -1,12 +1,12 @@
-import QtQuick 1.0
+import QtQuick 2.0
 // this must be imported globally! so only once in main.qml
 //import "levelLogic.js" as Logic
-import VPlay 1.0
+import VPlay 2.0
 
 BuildEntityButton {
     id: buyTowerButton
 
-    //anchors.fill: buttonSprite - this doesnt work, because anchoring only works for parent or sibling! thus set the width & height manually
+    //anchors.fill: buttonSprite - this doesn't work, because anchoring only works for parent or sibling! thus set the width & height manually
     width: buttonSprite.width
     height: buttonSprite.height
 
@@ -29,11 +29,50 @@ BuildEntityButton {
 //        console.debug("BuyTowerButton.onCompleted");
 //    }
 
+    Connections {
+      id: buyTowerButtonConnection
+      //target: level.balancingSettings.nailgun
+      onCostChanged: {
+        var theNewCost = 0
+        if(createdEntity.entityType === "nailgun") {
+          theNewCost = level.balancingSettings.nailgun.cost
+        } else if(createdEntity.entityType === "flamethrower") {
+          theNewCost = level.balancingSettings.flamethrower.cost
+        } else if(createdEntity.entityType === "taser") {
+          theNewCost = level.balancingSettings.taser.cost
+        } else if(createdEntity.entityType === "tesla") {
+          theNewCost = level.balancingSettings.tesla.cost
+        } else if(createdEntity.entityType === "turbine") {
+          theNewCost = level.balancingSettings.turbine.cost
+        }
+        buyTowerButton.cost = theNewCost
+      }
+    }
+
     // not needed any more, was moved to default behavior of BuildEntityButton
     onCreatedEntityChanged: {
         console.debug("BuyTowerButton: createdEntityChanged to", createdEntity)
         if(createdEntity) {
-            cost = createdEntity.cost
+
+            // Does not work anymore because the dynamic change is not stated in the entity.
+            //cost = createdEntity.cost
+          if(createdEntity.entityType === "nailgun") {
+            buyTowerButtonConnection.target = level.balancingSettings.nailgun
+            cost = level.balancingSettings.nailgun.cost
+          } else if(createdEntity.entityType === "flamethrower") {
+            buyTowerButtonConnection.target = level.balancingSettings.flamethrower
+            cost = level.balancingSettings.flamethrower.cost
+          } else if(createdEntity.entityType === "taser") {
+            buyTowerButtonConnection.target = level.balancingSettings.taser
+            cost = level.balancingSettings.taser.cost
+          } else if(createdEntity.entityType === "tesla") {
+            buyTowerButtonConnection.target = level.balancingSettings.tesla
+            cost = level.balancingSettings.tesla.cost
+          } else if(createdEntity.entityType === "turbine") {
+            buyTowerButtonConnection.target = level.balancingSettings.turbine
+            cost = level.balancingSettings.turbine.cost
+          }
+
             console.debug("BuyTowerButton: setting cost of button to", cost)
 
 //            // this is the default behavior anyway
@@ -48,6 +87,7 @@ BuildEntityButton {
         selectedTowerRange.isAllowedToBuild = createdEntity.allowedToBuild;
         selectedTowerRange.colliderRadius = createdEntity.colliderRadius;
         selectedTowerRange.visible = true;
+      tutorials.nextAction(createdEntity.entityType, "pressed")
     }
 
     onEntityReleased: {
@@ -55,7 +95,7 @@ BuildEntityButton {
     }
 
     onEntityWasBuilt: {
-        // play the building sound effect here        
+        // play the building sound effect here
         towerConstructEffect.play();
 
       // this is interesting for analytics!
@@ -63,12 +103,17 @@ BuildEntityButton {
         player.nailgunsBuilt++;
       else if(createdEntity.entityType === "flamethrower")
         player.flamethrowersBuilt++;
+      else if(createdEntity.entityType === "taser")
+        player.tasersBuilt++;
+      else if(createdEntity.entityType === "tesla")
+        player.teslasBuilt++;
       else if(createdEntity.entityType === "turbine")
         player.turbinesBuilt++;
       flurry.logEvent("Tower.Built", {"towerType": createdEntity.entityType, "playerGold": player.gold, "wave": player.wave});
 
         // decrease player gold by the cost of this weapon
         player.gold -= cost;
+      tutorials.nextAction(createdEntity.entityType, "entityBuilt",Qt.point(createdEntity.x,createdEntity.y))
     }
 
 
@@ -83,9 +128,9 @@ BuildEntityButton {
     }
 
     // gets played when the building is allowed and the tower gets built
-    Sound {
+    SoundEffectVPlay {
         id: towerConstructEffect
-        source: "../../snd/towerConstruct.wav"
+        source: "../../../assets/snd/towerConstruct.wav"
     }
 
     // this modifies the position of the selectedTowerRange image defined in HUD

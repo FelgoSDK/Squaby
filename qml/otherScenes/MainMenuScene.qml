@@ -1,7 +1,7 @@
-import QtQuick 1.1
-import VPlay 1.0
+import QtQuick 2.0
+import VPlay 2.0
+import "../common"
 
-// is shown at game start and shows the maximum highscore and a button for starting the game
 SquabySceneBase {
   id: mainMenuScene
 
@@ -10,80 +10,28 @@ SquabySceneBase {
   signal playClicked
   signal myLevelsClicked
   signal creditsClicked
+  signal gameNetworkViewClicked
+
+  property string exitAction: ""
+  // only if this is set to true, the exit dialog should quit the app
+  property bool exitDialogShown: false
+  property bool vplayLinkShown: false
 
   MultiResolutionImage {
-    source: "../img/bgSubmenu-sd.png"
+    source: "../../assets/img/bgSubmenu.png"
     anchors.centerIn: parent
     property int pixelFormat: 3
   }
 
   MultiResolutionImage {
     id: squabyBg
-    source: "../img/bgMainmenu-sd.png"
+    source: "../../assets/img/bgMainmenu.png"
     anchors.centerIn: parent
   }
 
-  Image {
-    width: 50
-    height: 40
-    source: settings.soundEnabled ? "../img/audio-enabled-500x400.png" : "../img/audio-mute-500x400.png"
-    anchors.bottom: gameWindowAnchorItem.bottom
-    // move slightly to the bottom, so the bottom border of the image is not visible (as it is distracting)
-    anchors.bottomMargin: -1
-
-    anchors.left: facebookLink.right
-    // move a bit to the right so it looks better
-    anchors.leftMargin: 15
-
-    // this icon should only be displayed on Symbian & Meego, because on the other platforms the volume hardware keys work; but on Sym & Meego the volume cant be adjusted as the hardware volume keys are not working
-    // also, display it when in debug build for quick toggling the sound
-    visible: system.debugBuild || system.isPlatform(System.Meego) || system.isPlatform(System.Symbian)
-
-    MouseArea {
-      anchors.fill: parent
-      onClicked: {
-        settings.soundEnabled = !settings.soundEnabled
-      }
-    }
-  }
-
-  Image {
-    id: facebookLink
-    width: height
-    height: 40-3
-    source: "../img/facebook-logo-hd2.png"
-    anchors.bottom: gameWindowAnchorItem.bottom
-    // move slightly to the bottom, so the bottom border of the image is not visible (as it is distracting)
-    anchors.bottomMargin: 3
-
-    anchors.left: gameWindowAnchorItem.left
-    // move a bit to the right so it looks better
-    anchors.leftMargin: 15
-
-    MouseArea {
-      anchors.fill: parent
-      onClicked: {
-        facebook.openVPlayFacebookSite()
-      }
-    }
-  }
-
-  // the v-play logo does not really look good here
-//  Image {
-//    x: 5
-//    y: 235
-//    source: "../img/vplay.png"
-//    // the image size is bigger (for hd2 image), so only a single image no multiresimage can be used
-//    // this scene is not performance sensitive anyway!
-//    fillMode: Image.PreserveAspectFit
-//    height: 35
-//    MouseArea {
-//      anchors.fill: parent
-//      onClicked: nativeUtils.openUrl("http://v-play.net");
-//    }
-//  }
-
   Column {
+    id: menuColumn
+    anchors.left: parent.gameWindowAnchorItem.left
     y:15
     spacing: 4
 
@@ -91,86 +39,211 @@ SquabySceneBase {
     MainMenuButton {
       id: b1
 
+      offsetX: -80
+
       text: qsTr("Play")
 
       onClicked: {
-        console.debug(text, " button clicked, start the game")
         mainMenuScene.state = "exited"
-
-        playClicked()
+        exitAction = "playClicked"
       }
     }
 
     MainMenuButton {
       id: b2
 
-      offsetX: 20
+      offsetX: -60
       delay: 500
-      text: qsTr("Highscore")
+      text: qsTr("Levels")
 
       onClicked: {
-        console.debug(text, "button clicked")
-
-        if (gameCenter.authenticated) {
-          // Show Game Center overlay
-          gameCenter.showLeaderboard();
-        }
-        else {
-          // Display highscore scene alternatively
-          mainMenuScene.state = "exited"
-          window.state = "highscore"
-        }
+        mainMenuScene.state = "exited"
+        exitAction = "myLevelsClicked"
       }
     }
 
     MainMenuButton {
       id: b3
 
-      offsetX: 40
+      offsetX: -40
       delay: 1000
       text: qsTr("Credits")
 
       onClicked: {
-        console.debug(text, " button clicked")
-
-        creditsClicked()
-
         mainMenuScene.state = "exited"
-        window.state = "credits"
+        exitAction = "creditsClicked"
       }
     }
-
 
     MainMenuButton {
-      id: b4
-      offsetX: 60
+      id: settingsButton
+      slideInFromRight: false
+
+      offsetX: (system.isPlatform(System.IOS) || system.isPlatform(System.Android)) ? -410 : -310
       delay: 1500
+      outslidedXBase: -115
 
-      text: qsTr("My Levels")
+      Row {
+        id: moreSubRowMyLevels
+        spacing: 10
+        y: 1
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.right: parent.right
+        anchors.rightMargin: 5
 
-      // do not show the levels option for the public game yet, only for testing at the moment!
-      // the level editing is not finalized, thus dont add it to the final game yet
-      visible: allowMultipleLevels
+        // Music
+        MenuButton {
+          source: "../../assets/img/menu-settings-music.png"
+          active: !settings.musicEnabled
+          onClicked: {
+            settings.musicEnabled ^= true
+            flurry.logEvent("Settings.Changed","Music",settings.musicEnabled)
+          }
+        }
+        // Sound
+        MenuButton {
+          source: "../../assets/img/menu-settings-sound.png"
+          active: !settings.soundEnabled
+          onClicked: {
+            settings.soundEnabled ^= true
+            flurry.logEvent("Settings.Changed","Sound",settings.musicEnabled)
+          }
+        }
 
+        Item {
+          width: adsButton.width
+          height: adsButton.height
+          visible: system.isPlatform(System.IOS) || system.isPlatform(System.Android)
+
+          MultiResolutionImage {
+            id: adsButton
+            source: "../../assets/img/menu-ad-purchased.png"
+            visible: levelStore.noAdsGood.purchased
+          }
+          MultiResolutionImage {
+            source: "../../assets/img/menu-ad.png"
+            visible: !levelStore.noAdsGood.purchased
+          }
+
+          MouseArea {
+            anchors.fill: parent
+            onClicked: {
+              parent.scale = 1.0
+              if(!levelStore.noAdsGood.purchased) {
+                flurry.logEvent("Store","Advert")
+                levelStore.buyItem(levelStore.noAdsGood.itemId)
+              }
+            }
+            onPressed: {
+              parent.scale = 0.85
+            }
+            onReleased: {
+              parent.scale = 1.0
+            }
+            onCanceled: {
+              parent.scale = 1.0
+            }
+          }
+        }
+
+        Item {
+          width: fbSettingsButton.width
+          height: fbSettingsButton.height
+          visible: system.isPlatform(System.IOS) || system.isPlatform(System.Android)
+
+          MultiResolutionImage {
+            id: fbSettingsButton
+            source: "../../assets/img/menu-settings-fb-on.png"
+            visible: gameNetwork.facebookConnectionSuccessful
+          }
+          MultiResolutionImage {
+            source: "../../assets/img/menu-settings-fb-off.png"
+            visible: !gameNetwork.facebookConnectionSuccessful
+          }
+
+          MouseArea {
+            anchors.fill: parent
+            onClicked: {
+              parent.scale = 1.0
+              flurry.logEvent("Store","Facebook")
+              gameNetworkViewClicked()
+            }
+            onPressed: {
+              parent.scale = 0.85
+            }
+            onReleased: {
+              parent.scale = 1.0
+            }
+            onCanceled: {
+              parent.scale = 1.0
+            }
+          }
+        }
+
+        MenuButton {
+          source: "../../assets/img/menu-settings.png"
+          active: !settingsButton.slidedOut
+          onClicked: {
+            if(settingsButton.slidedOut) {
+              settingsButton.slideIn()
+            } else {
+              settingsButton.slideOut()
+            }
+          }
+        }
+      }
+    }
+  } // end of Column
+
+  Image {
+    id: logo
+    anchors.left: mainMenuScene.gameWindowAnchorItem.left
+    anchors.leftMargin: 10
+    anchors.bottom: mainMenuScene.gameWindowAnchorItem.bottom
+    anchors.bottomMargin: 10
+    source: "../../assets/img/vplay_icon.png"
+    // the image size is bigger (for hd2 image), so only a single image no multiresimage can be used
+    // this scene is not performance sensitive anyway!
+    fillMode: Image.PreserveAspectFit
+    height: 55
+
+    MouseArea {
+      anchors.fill: parent
       onClicked: {
-        console.debug(text, " button clicked, start the game")
-        myLevelsClicked()
+        vplayLinkShown = true
+        flurry.logEvent("MainScene.ShowDialog.VPlayWeb")
+        nativeUtils.displayMessageBox(qsTr("V-Play Game Engine"), qsTr("This game is built with V-Play Game Engine. The source code is available in the free V-Play SDK - so you can build your own tower defense in minutes! Visit V-Play.net now?"), 2)
       }
     }
 
-  } // end of Column
+    SequentialAnimation {
+      running: true
+      loops: -1
+      NumberAnimation { target: logo; property: "opacity"; to: 0.1; duration: 1200 }
+      NumberAnimation { target: logo; property: "opacity"; to: 1; duration: 1200 }
+    }
+  }
 
   Connections {
     // nativeUtils should only be connected, when this is the active scene
       target: activeScene === mainMenuScene ? nativeUtils : null
       onMessageBoxFinished: {
         console.debug("the user confirmed the Ok/Cancel dialog with:", accepted)
-        if(accepted)
+        if(accepted && exitDialogShown) {
           Qt.quit()
+        } else if(accepted && vplayLinkShown) {
+          flurry.logEvent("MainScene.Show.VPlayWeb")
+          nativeUtils.openUrl("http://v-play.net/showcases/?utm_medium=game&utm_source=squaby&utm_campaign=squaby#squaby");
+        }
+
+        // set it to false again
+        exitDialogShown = false
+        vplayLinkShown = false
       }
   }
 
-  onBackPressed: {
+  onBackButtonPressed: {
+    exitDialogShown = true
     nativeUtils.displayMessageBox(qsTr("Really quit the game?"), "", 2);
     // instead of immediately shutting down the app, ask the user if he really wants to exit the app with a native dialog
     //Qt.quit()
@@ -185,32 +258,50 @@ SquabySceneBase {
     State {
       name: "entered"
       PropertyChanges { target: squabyBg; opacity: 1 }
+      PropertyChanges { target: settingsButton; opacity: 1 }
+
       StateChangeScript {
         script: {
           b1.slideIn();
           b2.slideIn();
           b3.slideIn();
-          b4.slideIn();
+          //settingsButton.slideIn();
         }
       }
     },
     State {
       name: "exited"
       PropertyChanges { target: squabyBg; opacity: 0 }
+      PropertyChanges { target: settingsButton; opacity: 0 }
       StateChangeScript {
         script: {
           b1.slideOut();
           b2.slideOut();
           b3.slideOut();
-          b4.slideOut();
+          settingsButton.slideOut();
+          sceneChangeTimer.start()
         }
       }
     }
   ]
 
+  Timer {
+    id: sceneChangeTimer
+    interval: b3.slideDuration
+    onTriggered: {
+      if(exitAction === "playClicked") {
+        playClicked()
+      } else if(exitAction === "myLevelsClicked") {
+        myLevelsClicked()
+      } else if(exitAction === "creditsClicked") {
+        creditsClicked()
+      }
+    }
+  }
+
   transitions: Transition {
       NumberAnimation {
-        target: squabyBg
+        targets: [squabyBg,settingsButton]
         duration: 900
         property: "opacity"
         easing.type: Easing.InOutQuad

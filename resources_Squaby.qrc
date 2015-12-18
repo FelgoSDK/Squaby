@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml</file>
+        <file>qml/balancing</file>
+        <file>qml/common</file>
+        <file>qml/entities</file>
+        <file>qml/fonts</file>
+        <file>qml/gameScene</file>
+        <file>qml/gameScene/hud</file>        
+        <file>qml/levels</file>
+        <file>qml/levels/empty</file>
+        <file>qml/levels/jsonLevels</file>
+        <file>qml/levels/levelSelection</file>
+        <file>qml/otherScenes</file>
+        <file>qml/particles</file>
+    </qresource>
+</RCC>

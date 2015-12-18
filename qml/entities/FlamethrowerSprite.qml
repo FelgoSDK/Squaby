@@ -1,27 +1,23 @@
-import QtQuick 1.1
-import VPlay 1.0
+import QtQuick 2.0
+import VPlay 2.0
 
 TowerBaseSprite {
   id: flamethrowerSprite
-  spriteSheetSource: "../img/flamegun-sd.png"
-  // this sets the width & height of the foundation and for the single sprite below
-  defaultFrameWidth: 28
-  defaultFrameHeight: 42
 
-  // the flamethrower doesnt have a shooting animation! it uses a particle effect for shooting!
-  SingleSpriteFromSpriteSheet {
-    id: towerBase
-    frameWidth: flamethrowerSprite.contentScaledFrameWidth
-    frameHeight: flamethrowerSprite.contentScaledFrameHeight
-    scale: flamethrowerSprite.towerBaseContentScaleFactor
-    startFrameColumn: 3
-    spriteSheetSource: flamethrowerSprite.spriteSheetSource
+  // all upgrade states have the same base image
+  spriteSheetSource: "../../assets/img/towers/flamethrower/flamegun_basement_1.png"
+  property string spriteSheetSourceTurret: "../../assets/img/towers/flamethrower/flamegun_turret_"+frameElement+".png"
 
-    // 0 degrees should point to the right, not to the bottom like the image currently is
-    rotation: rotationOffset
+  // smaller grafics so that the sprites do not overlap because this problem can not be solved with z values because both parts are in the same entity which has lower/higher z value than a other tower
+  scale: 0.875
 
-    // set the same row for all sprites
-    startFrameRow: flamethrowerSprite.startFrameRow
+  Item {
+    // the main tower is rotate against the rotation of the whole entity, because the base should not rotate. Therefore we apply the entity rotation here so that the gun rotates
+    rotation: flamethrowerSprite.parent.rotation
+    MultiResolutionImage {
+      translateToCenterAnchor: true
+//      filename: "../../assets/img/all-sd.json"
+      source: spriteSheetSourceTurret
+    }
   }
-
 }

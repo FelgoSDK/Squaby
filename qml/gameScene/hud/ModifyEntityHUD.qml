@@ -1,11 +1,11 @@
-import QtQuick 1.1
+import QtQuick 2.0
 
 
 Row {
   id: modifyEntityRow
 
 
-  // also a RotateButton could be added here, or a scale button - but since this is not allowed for squaby yet, dont add it
+  // also a RotateButton could be added here, or a scale button - but since this is not allowed for squaby yet, don't add it
 
   // this is only used for the turbine
   DestroyEntityButton {

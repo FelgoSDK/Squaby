@@ -1,5 +1,5 @@
-import VPlay 1.0
-import QtQuick 1.1
+import VPlay 2.0
+import QtQuick 2.0
 
 Scene {
   id: squabySceneBase
@@ -14,9 +14,6 @@ Scene {
   // this is done automatically in scene, however, and is not need to be set explicitly here
   //visible: opacity>0
 
-  // handle this signal in each Scene
-  signal backPressed
-
   Component.onCompleted: console.debug("Scene.onCompleted, focus is", focus, "of scene", squabySceneBase)
 
   // NOTE: setting the focus to activeScene === squabySceneBase is not sufficient when the scene gets loaded dynamically!
@@ -29,19 +26,4 @@ Scene {
   //onFocusChanged: console.debug("focus of scene changed to", focus, "for scene", squabySceneBase)
   //onActiveFocusChanged: console.debug("activeFocus changed to", focus, "for scene", squabySceneBase)
 
-
-  Keys.onPressed: {
-    //console.debug("pressed key id: ", event.key)
-
-    // only simulate on desktop platforms!
-    if(event.key === Qt.Key_Backspace && system.desktopPlatform) {
-      console.debug("backspace key pressed - simulate a back key pressed on desktop platforms for debugging the user flow of Android on windows!")
-      backPressed()
-    }
-  }
-
-  Keys.onBackPressed: {
-    //console.debug("the back button was pressed on Android, handle the signal in the scene")
-    backPressed()
-  }
 }
