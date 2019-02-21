@@ -29,7 +29,7 @@ Proudly developed with Felgo
 
 Installation Instructions
 -------------------------
-This game was made with Felgo. You need the engine which is freely available on https://felgo.com/ for all desktop platforms.
+This game was made with Felgo. You need the SDK which is freely available on https://felgo.com/ for all desktop platforms.
 
 1. Go to https://felgo.com/, register, download and install the free Felgo SDK.
 2. Clone the repository.
