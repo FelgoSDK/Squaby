@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 
 Item {
   id: tutorialSelection
@@ -88,7 +88,7 @@ Item {
     }
   }
 
-  ParticleVPlay {
+  Particle {
     id: notificationParticle
     fileName: "../../particles/TutorialNotification.json"
     autoStart: false

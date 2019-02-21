@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 
 /*!
   This component is used to load the level in 2 phases: first the window state is set to loading so the LoadingScene appears.
@@ -89,7 +89,7 @@ Item {
 
     console.debug("TwoPhaseLevelLoader: startGameAfterLevelLoadingAnimationFinished called")
 
-    // this cant happen any more here - it is guaranteed that the SquabyScene was loaded before, because startGame() was called before and switchted to state loading, where the scene source got set afterwards
+    // this cant happen any more here - it is guaranteed that the SquabyScene was loaded before, because startGame() was called before and switched to state loading, where the scene source got set afterwards
 //    if(!gameSceneLoader.item) {
 //      console.debug("ERROR: TwoPhaseLevelLoader: the level is not loaded yet - that happens when it is started for the 1st time, when the LoadingScene timer is not finished yet")
 //      return;

@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 import "../gameScene/hud" // for SingleSquabySprite
 
 // this may become an EntityBaseDraggable, when the position of it should be changable, and it should be createable at runtime from the building menu!

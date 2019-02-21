@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 
 TowerBaseSprite {
   id: nailgunSprite
@@ -12,8 +12,8 @@ TowerBaseSprite {
 
   Item {
 //    rotation: nailgunSprite.parent.rotation
-    // could also be an AnimatedSpriteVPlay, because there is only 1 animation
-    SpriteSequenceVPlay {
+    // could also be an AnimatedSprite, because there is only 1 animation
+    SpriteSequence {
       id: spriteSequence
       rotation: nailgunSprite.parent.rotation
 
@@ -26,7 +26,7 @@ TowerBaseSprite {
       // dont set running to false now, this is changed in onUsedFromPool()
 //      running: false
 
-      SpriteVPlay {
+      Sprite {
         name: "idle"
         startFrameColumn: 1
         startFrameRow: frameElement
@@ -36,7 +36,7 @@ TowerBaseSprite {
         frameDuration: 100000
       }
 
-      SpriteVPlay {
+      Sprite {
         id: shootAnimation
         name: "shoot"
         frameWidth: 32

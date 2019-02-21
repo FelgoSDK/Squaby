@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 // this is only needed to get access to Box2DFixture class, containing the categories
 
 

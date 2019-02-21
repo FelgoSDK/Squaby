@@ -1,6 +1,6 @@
 import QtQuick 2.0
-//import VPlay 2.0 // why isnt this working?
-import VPlay 2.0
+//import Felgo 3.0 // why isnt this working?
+import Felgo 3.0
 
 // unfortunatley no gradient for font color/filling is possible, so use the precreated images
 //Text {

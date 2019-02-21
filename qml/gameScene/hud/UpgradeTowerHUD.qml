@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 
 Row {
   id: upgradeTowerHUD
@@ -54,13 +54,13 @@ Row {
       towerSellEffect.play();
     }
 
-    SoundEffectVPlay {
+    SoundEffect {
       id: towerSellEffect
       source: "../../../assets/snd/towerDestruct.wav"
     }
   }
 
-  SoundEffectVPlay {
+  SoundEffect {
     id: towerUpgradeEffect
     source: "../../../assets/snd/towerUpgrade.wav"
   }

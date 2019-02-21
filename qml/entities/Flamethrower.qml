@@ -1,6 +1,6 @@
 import QtQuick 2.0
 import QtMultimedia 5.0 // needed for SoundEffect.Infinite
-import VPlay 2.0
+import Felgo 3.0
 // this is only needed to get access to Box2DFixture class, containing the categories
 
 import "../particles" // for FireParticles
@@ -70,21 +70,21 @@ TowerBase {
       id: sprite
     }
 
-    SoundEffectVPlay {
+    SoundEffect {
         id: shootEffect
         source: "../../assets/snd/flamethrowerFire01.wav"
         // the sound effect should looop when a squaby is aimed at
         loops: SoundEffect.Infinite
     }
 
-    ParticleVPlay {
+    Particle {
         id: fireParticle1
         fileName: "../particles/FireParticle.json"
         y: 0
         x: 15
     }
 
-    ParticleVPlay {
+    Particle {
         id: fireParticle2
         fileName: "../particles/FireParticle.json"
         y: -5

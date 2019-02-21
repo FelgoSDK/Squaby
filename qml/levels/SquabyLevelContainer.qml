@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0 // for System
+import Felgo 3.0 // for System
 import "../entities"
 import "../balancing"
 

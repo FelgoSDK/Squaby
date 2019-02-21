@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 import "../../common"
 
 Item {
@@ -56,13 +56,6 @@ Item {
         anchors.fill: parent
         onClicked: {
           flurry.logEvent("IAP.Buy5Credits")
-          infinario.track('soft_purchase', {
-              action: 'buy',
-              category: 'shop',
-              total: 5,
-              item_id: levelStore.money5Pack.itemId,
-              item_name: 'money5Pack'
-          })
           levelStore.buyItem(levelStore.money5Pack.itemId)
           buyCreditDialog.opacity = 0
           parent.scale = 1.0
@@ -95,13 +88,6 @@ Item {
         anchors.fill: parent
         onClicked: {
           flurry.logEvent("IAP.Buy10Credits")
-          infinario.track('soft_purchase', {
-            action: 'buy',
-            category: 'shop',
-            total: 10,
-            item_id: levelStore.money10Pack.itemId,
-            item_name: 'money10pack'
-          })
           levelStore.buyItem(levelStore.money10Pack.itemId)
           buyCreditDialog.opacity = 0
           parent.scale = 1.0
@@ -134,13 +120,6 @@ Item {
         anchors.fill: parent
         onClicked: {
           flurry.logEvent("IAP.Buy50Credits")
-          infinario.track('soft_purchase', {
-            action: 'buy',
-            category: 'shop',
-            total: 50,
-            item_id: levelStore.money50Pack.itemId,
-            item_name: 'money50Pack'
-          })
           levelStore.buyItem(levelStore.money50Pack.itemId)
           buyCreditDialog.opacity = 0
           parent.scale = 1.0

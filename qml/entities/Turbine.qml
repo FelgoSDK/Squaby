@@ -1,6 +1,6 @@
 import QtQuick 2.0
 import QtMultimedia 5.0 // needed for SoundEffect.Infinite
-import VPlay 2.0
+import Felgo 3.0
 import "../particles"
 // for HealthBar & HealthComponent
 import "../gameScene"
@@ -49,28 +49,28 @@ TowerBase {
         id: sprite
     }
 
-    SoundEffectVPlay {
+    SoundEffect {
         id: whirlEffect
         source: "../../assets/snd/turbineRunning.wav"
         loops: SoundEffect.Infinite
     }
 
-    SoundEffectVPlay {
+    SoundEffect {
         id: squabyShredderEffect
         source: "../../assets/snd/turbineShredder.wav"
     }
 
-    SoundEffectVPlay {
+    SoundEffect {
         id: turbineExplodeEffect
         source: "../../assets/snd/turbineExplode.wav"
     }
 
-    ParticleVPlay {
+    Particle {
         id: smokeParticle
         fileName: "../particles/SmokeParticle.json"
         duration: shootDelayInMilliSeconds*0.001
     }
-    ParticleVPlay {
+    Particle {
         id: puddleParticle
         fileName: "../particles/DeathParticle.json"
         x: -25
@@ -78,7 +78,7 @@ TowerBase {
         z: sprite.z-1
     }
     // Following two blood praticle effets are for minced squabies
-    ParticleVPlay {
+    Particle {
         id: splatterParticle
         fileName: "../particles/SplatterParticle.json"
         x: -15
@@ -208,7 +208,7 @@ TowerBase {
 
         // a check targetEntity===squaby is not possible, because squaby got marshalled as JS object! a check of ids would be necessary!
         if(targetEntity && targetEntity.entityId === squabyId) {
-            console.debug("Turbine: succesffully whirled a squaby to death, reduce its health");
+            console.debug("Turbine: successfully whirled a squaby to death, reduce its health");
 
             squabyShredderEffect.play();
             // decrease health by 1

@@ -1,8 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
-// Plugins
-//import VPlayPlugins.gamecenter 1.0
-import VPlayPlugins.flurry 1.0
+import Felgo 3.0
 
 import "otherScenes"
 import "gameScene"
@@ -84,7 +81,7 @@ Item {
     id: gameNetwork
   }
 
-  // this is called from VPlayGameNetwork when it gets synced
+  // this is called from FelgoGameNetwork when it gets synced
   // and after resuming the app after it was in background from StackTheBoxWithCommunityEditorMain
   function reloadUserBestLevelStats() {
     console.debug("reloadUserBestLevelStats() called")
@@ -266,7 +263,7 @@ Item {
     }
   }
 
-  VPlayGameNetworkScene {
+  FelgoGameNetworkScene {
     id: vplayGameNetworkScene
     onBackButtonPressed: {
       flurry.logEvent("GameNetwork.BackPressed","from",cameFromScene)

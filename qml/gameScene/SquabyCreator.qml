@@ -173,7 +173,7 @@ Item {
       running = false
     }
 
-    // is only called when switchted to the levelEditing state - the squaby creation should not be paused then, but fully stopped
+    // is only called when switched to the levelEditing state - the squaby creation should not be paused then, but fully stopped
     function stop() {
       // resets this variable, so the next call of start() will create a squaby immediately
       timeSpentBeforePaused = 0

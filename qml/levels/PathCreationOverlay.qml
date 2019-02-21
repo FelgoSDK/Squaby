@@ -1,7 +1,7 @@
 import QtQuick 2.0
 import "../gameScene/hud"
 import "PathCreationLogic.js" as Logic
-import VPlay 2.0
+import Felgo 3.0
 
 Item {
   id: draggableArea

@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 
 // a healthbar should never get rotated with the entity! so at first a rotation is needed, then move it to the desired position
 // thus an additional Item is needed, because otherwise at first the transform is applied, and afterwards the movement

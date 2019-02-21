@@ -1,6 +1,6 @@
 import QtQuick 2.0
 import QtMultimedia 5.0 // needed for SoundEffect.Infinite
-import VPlay 2.0
+import Felgo 3.0
 import "../particles" // for Sparkle particle
 
 TowerBase {
@@ -56,14 +56,14 @@ TowerBase {
         id: sprite
     }
 
-    SoundEffectVPlay {
+    SoundEffect {
         id: shootEffect
         source: "../../assets/snd/teslafire.wav"
         // the sound effect should looop when a squaby is aimed at
         loops: SoundEffect.Infinite
     }
 
-    ParticleVPlay {
+    Particle {
         id: teslaParticle
         fileName: "../particles/tesla.json"
         y: 0

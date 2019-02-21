@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 import "../../levels" // for the MenuButton, which is also used for the level laoding
 
 Column {

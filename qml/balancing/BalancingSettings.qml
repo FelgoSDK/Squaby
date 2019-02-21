@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 
 // this is a combination of all properties for balancing for the whole game - modify this to maximize the fun and also tweaking per level would be possible
 Item {

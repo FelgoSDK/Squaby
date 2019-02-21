@@ -1,6 +1,6 @@
 import QtQuick 2.0
 import QtMultimedia 5.0 // needed for SoundEffect.Infinite
-import VPlay 2.0
+import Felgo 3.0
 import "../particles" // for Sparkle particle
 
 TowerBase {
@@ -30,7 +30,7 @@ TowerBase {
         id: sprite
     }
 
-    SoundEffectVPlay {
+    SoundEffect {
         //SoundEffect {
         id: shootEffect
         source: "../../assets/snd/taserfire.wav"
@@ -38,14 +38,14 @@ TowerBase {
         loops: SoundEffect.Infinite
     }
 
-    ParticleVPlay {
+    Particle {
         id: fireParticle1
         fileName: "../particles/FireParticle.json"
         y: 0
         x: 15
     }
 
-    ParticleVPlay {
+    Particle {
         id: fireParticle2
         fileName: "../particles/FireParticle.json"
         y: -5

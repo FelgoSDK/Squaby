@@ -1,7 +1,7 @@
 import QtQuick 2.0
 // this is only needed to get access to Box2DFixture class, containing the categories
 
-import VPlay 2.0
+import Felgo 3.0
 import "../particles"
 import "../gameScene" // for HealthBar component
 
@@ -157,19 +157,19 @@ EntityBase {
     }
 
     // gets played when HealthComponent.onDied is received
-    SoundEffectVPlay {
+    SoundEffect {
         id: dieSound
         // an ogg file is not playable on windows, because the extension is not supported!
         source: "../../assets/snd/squafurScream.wav"
     }
     // these 2 soundEffects are played randomly when a squaby dies, so 2 different die sounds (not based on the squaby type, as they both sound good and should be randomly switched)
-    SoundEffectVPlay {
+    SoundEffect {
         id: dieSound2
         source: "../../assets/snd/squatanScream.wav"
     }
 
     // Particle when Squaby gets hit
-    ParticleVPlay {
+    Particle {
         id: hitParticle
         fileName: "../particles/SplatterParticle.json"
         //positionType: ParticleSystem.Relative
@@ -177,7 +177,7 @@ EntityBase {
     }
 
     // Particle when Squaby dies
-    ParticleVPlay {
+    Particle {
         id: deathParticle
         fileName: "../particles/DeathParticle.json"
     }

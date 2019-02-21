@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 import "../common"
 
 SquabySceneBase {
@@ -201,7 +201,7 @@ SquabySceneBase {
     anchors.leftMargin: 10
     anchors.bottom: mainMenuScene.gameWindowAnchorItem.bottom
     anchors.bottomMargin: 10
-    source: "../../assets/img/vplay_icon.png"
+    source: "../../assets/img/felgo-logo.png"
     // the image size is bigger (for hd2 image), so only a single image no multiresimage can be used
     // this scene is not performance sensitive anyway!
     fillMode: Image.PreserveAspectFit
@@ -212,7 +212,7 @@ SquabySceneBase {
       onClicked: {
         vplayLinkShown = true
         flurry.logEvent("MainScene.ShowDialog.VPlayWeb")
-        nativeUtils.displayMessageBox(qsTr("V-Play Game Engine"), qsTr("This game is built with V-Play Game Engine. The source code is available in the free V-Play SDK - so you can build your own tower defense in minutes! Visit V-Play.net now?"), 2)
+        nativeUtils.displayMessageBox(qsTr("Felgo"), qsTr("This game is built with Felgo. The source code is available in the free Felgo SDK - so you can build your own tower defense in minutes! Visit Felgo.net now?"), 2)
       }
     }
 
@@ -233,7 +233,7 @@ SquabySceneBase {
           Qt.quit()
         } else if(accepted && vplayLinkShown) {
           flurry.logEvent("MainScene.Show.VPlayWeb")
-          nativeUtils.openUrl("http://v-play.net/showcases/?utm_medium=game&utm_source=squaby&utm_campaign=squaby#squaby");
+          nativeUtils.openUrl("https://felgo.com/showcases/?utm_medium=game&utm_source=squaby&utm_campaign=squaby#squaby");
         }
 
         // set it to false again

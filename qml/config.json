@@ -4,7 +4,7 @@
   "orientation": "landscape",
   "versioncode": 10,
   "versionname": "1.0",
-  "author": "V-Play GmbH",
+  "author": "Felgo GmbH",
   "plugins": [ "store", "flurry", "facebook", "gui" , "chartboost" , "admob"],
 
   "stage": "test",

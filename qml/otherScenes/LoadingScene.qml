@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 
 // is shown at game start and shows the maximum highscore and a button for starting the game
 SquabySceneBase {

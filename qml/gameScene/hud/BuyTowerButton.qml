@@ -1,7 +1,7 @@
 import QtQuick 2.0
 // this must be imported globally! so only once in main.qml
 //import "levelLogic.js" as Logic
-import VPlay 2.0
+import Felgo 3.0
 
 BuildEntityButton {
     id: buyTowerButton
@@ -128,7 +128,7 @@ BuildEntityButton {
     }
 
     // gets played when the building is allowed and the tower gets built
-    SoundEffectVPlay {
+    SoundEffect {
         id: towerConstructEffect
         source: "../../../assets/snd/towerConstruct.wav"
     }

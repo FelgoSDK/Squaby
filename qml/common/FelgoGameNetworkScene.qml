@@ -1,16 +1,16 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 import "../otherScenes"
 
 SquabySceneBase {
   id: scene
 
-  // needs to be accessed assigned to the VPlayGameNetwork, so it can show it
+  // needs to be accessed assigned to the FelgoGameNetwork, so it can show it
   property alias gameNetworkView: gameNetworkView
 
   property string cameFromScene
 
-  VPlayGameNetworkView {
+  GameNetworkView {
     id: gameNetworkView
     anchors.fill: scene.gameWindowAnchorItem
 

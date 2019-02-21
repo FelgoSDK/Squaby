@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 
 TowerBaseSprite {
   id: turbineSprite
@@ -15,7 +15,7 @@ TowerBaseSprite {
 
   Item {
     rotation: turbineSprite.parent.rotation
-    SpriteSequenceVPlay {
+    SpriteSequence {
       id: explodeSprite
       anchors.centerIn: parent
 
@@ -24,7 +24,7 @@ TowerBaseSprite {
       // the animation should NOT run from the beginning! once jumpTo is called, it gets set to true automatically!
 //      running: false
 
-      SpriteVPlay {
+      Sprite {
         id: idle
         name: "idle"
         startFrameColumn: 1
@@ -39,7 +39,7 @@ TowerBaseSprite {
         frameDuration: 100000
       }
 
-      SpriteVPlay {
+      Sprite {
         id: explodeAnimation
         name: "explode"
         startFrameColumn: 2
@@ -53,7 +53,7 @@ TowerBaseSprite {
         to: { "explodeLastFrame": 1 }
       }
 
-      SpriteVPlay {
+      Sprite {
         id: explodeLastFrameAnimation
         name: "explodeLastFrame"
         startFrameColumn: explodeAnimation.startFrameColumn+explodeAnimation.frameCount - 1
@@ -65,7 +65,7 @@ TowerBaseSprite {
       }
     }
 
-    SpriteSequenceVPlay {
+    SpriteSequence {
       id: whirlSprite      
 
       defaultSource: "../../assets/img/spritesheets/turbine/whirl.png"
@@ -81,7 +81,7 @@ TowerBaseSprite {
       // this offset is an arbitrary number, tested visually!
       y: -16
 
-      SpriteVPlay {
+      Sprite {
         id: whirlAnimation
         name: "whirl"
 //        frameNames: [

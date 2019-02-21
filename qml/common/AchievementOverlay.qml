@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 import "AchievementQueue.js" as AchievementQueue
 import "../otherScenes"
 
@@ -22,7 +22,7 @@ SquabySceneBase {
     if(!hideAfterDelay.running) display()
   }
 
-  // this is called to actutally display the first achievement in the queue
+  // this is called to actually display the first achievement in the queue
   function display() {
     // take the achievement from the queue and
     achievement = AchievementQueue.take()
@@ -37,7 +37,7 @@ SquabySceneBase {
     else opacity = 0
   }
 
-  // the achievement is shown untill the player presses it or this timer runs out
+  // the achievement is shown until the player presses it or this timer runs out
   Timer {
     id: hideAfterDelay
     interval: 10000

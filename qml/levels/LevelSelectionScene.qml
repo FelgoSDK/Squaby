@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 import "../otherScenes" // for MainMenuButton and SquabySceneBase
 import "levelSelection"
 import"../common"
@@ -448,8 +448,8 @@ SquabySceneBase {
     //if(levelStore.supported) {
 
     // for testing the purchase process with the build server, by default the "stage" property is set to "test"
-    // this means the build server signs the app with the V-Play certificate to allow quick testing & deployment
-    // however, in-app-purchases and the Store plugin require a publish build because in-app purchases are not working with the V-Play certificate but require YOUR OWN certificate
+    // this means the build server signs the app with the Felgo certificate to allow quick testing & deployment
+    // however, in-app-purchases and the Store plugin require a publish build because in-app purchases are not working with the Felgo certificate but require YOUR OWN certificate
     // thus for final testing including in-app purchases on iOS & Android, do change to publish build by changing the config.json "stage" property to "publish"
     // and to simulate the correct purchase process on build server for test builds, we directly download the level without an actual purchase on iOS & Android
     if( (system.isPlatform(System.IOS) || system.isPlatform(System.Android)) && !system.publishBuild ) {

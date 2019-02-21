@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 
 Item {
     id: startClock
@@ -35,7 +35,7 @@ Item {
       }
     }
 
-    // is only called when switchted to the levelEditing state - the squaby creation should not be paused then, but fully stopped
+    // is only called when switched to the levelEditing state - the squaby creation should not be paused then, but fully stopped
     function stop() {
       running = false
     }

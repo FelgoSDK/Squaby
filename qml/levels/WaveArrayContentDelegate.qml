@@ -1,4 +1,4 @@
-import VPlay 2.0
+import Felgo 3.0
 import QtQuick 2.0
 import "WaveArrayDelegateScript.js" as ArrayDelegateScript
 import "../"
@@ -196,7 +196,7 @@ Item {
     }
   }
   // Visibility Node
-  ButtonVPlay {
+  GameButton {
     id: addButton
     anchors.top: flickableElements.bottom
     anchors.left: flickableElements.left

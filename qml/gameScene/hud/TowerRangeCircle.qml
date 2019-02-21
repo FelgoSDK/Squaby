@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 
 // this component gets used for dragging the tower outside, and for indicating the radius of a selected tower
 MultiResolutionImage {

@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 
 Item {
   property variant towerPosition: Qt.point(0,0)
@@ -121,7 +121,7 @@ Item {
     y: 30
     visible: false
     source: "../../../assets/img/text-dialog-background.png"
-    TextDialog {
+    GameTextDialog {
       id: dialog
       width: 170
       height: 110

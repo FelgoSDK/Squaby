@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 
 /**
  * This is not a real "entity" - it contains a list of waypoints, with a collider being created for each waypoint.

@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 
 
 Item {
@@ -9,7 +9,7 @@ Item {
   property alias squabySprite: squabySprite
   signal animationFinished
 
-  SpriteSequenceVPlay {
+  SpriteSequence {
     // if goalSprite is not set, the first Sprite is used
     id: squabySprite
     goalSprite: "walk"
@@ -47,7 +47,7 @@ Item {
         variationTypeNumber = 6
     }
 
-    SpriteVPlay {
+    Sprite {
       name: "walk"
       frameWidth: 32
       frameHeight: 32
@@ -61,7 +61,7 @@ Item {
 //        "squ"+squabySprite.variationTypeNumber+"-walk-4.png",
 //      ]
     }
-    SpriteVPlay {
+    Sprite {
       name: "whirl"
       frameWidth: 32
       frameHeight: 32
@@ -76,7 +76,7 @@ Item {
       frameRate: 20
     }
     // the jump animation could be used when the squaby jumps under the bed - it is not used atm, because it is not good visible
-    SpriteVPlay {
+    Sprite {
       name: "jump"
       frameWidth: 32
       frameHeight: 32
@@ -90,8 +90,8 @@ Item {
       frameCount: 4
       frameRate: 10
     }
-    // this is V-Play 1 code - the restoreOriginalFrame property is not supported yet
-//    SpriteVPlay {
+    // this is Felgo 1 code - the restoreOriginalFrame property is not supported yet
+//    Sprite {
 //      name: "die"
 //      frameNames: [
 //        "squ"+squabySprite.variationTypeNumber+"-die-1.png",
@@ -104,7 +104,7 @@ Item {
 //      restoreOriginalFrame: false
 //    }
 
-    SpriteVPlay {
+    Sprite {
       name: "die"
       frameWidth: 32
       frameHeight: 32
@@ -114,7 +114,7 @@ Item {
       // play die animation once and then stay at the last frame
       to: {"dieLastFrame":1}
     }
-    SpriteVPlay {
+    Sprite {
       // this is required to be able to detect the end of the die animation
       id: dieAnimationFinished
       name: "dieLastFrame"

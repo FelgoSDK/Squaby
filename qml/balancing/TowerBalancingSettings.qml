@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 
 // use Item instead of QtObject or it won't work correctly with EditableComponents
 Item {

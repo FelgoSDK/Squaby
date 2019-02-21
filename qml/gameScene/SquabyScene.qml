@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 import "../levels" // contains the LevelLoader
 import "../balancing"
 import "hud"
@@ -79,7 +79,7 @@ SquabySceneBase {
 
     // if clicked in an empty area (so not on a tower), the upgradeMenu will disappear
     MouseArea {
-        anchors.fill: parent        
+        anchors.fill: parent
         onClicked: {
 
             if(scene.state === "levelEditing") {
@@ -344,7 +344,7 @@ SquabySceneBase {
       visible: (scene.cameFromLevelEditing || scene.state === "levelEditing") && !itemEditor.visible
       opacity: scene.cameFromLevelEditing ? 0.4 : 0.8
       SingleSquabySprite {
-        id: sprite        
+        id: sprite
         source: "../../assets/img/button.png"
       }
 
@@ -526,7 +526,7 @@ SquabySceneBase {
         } else {
           // if it was false and the current level is an authorLevel, this means the previous state was levelEditing
           // however, this can never happen, because no restart option is clickable when in levelEditing state!
-          // but this will happen, when an author level is loaded, and previously an applicaiton level was loaded
+          // but this will happen, when an author level is loaded, and previously an application level was loaded
 
           console.debug("SquabyScene: the level is an authorGenerated one - switch scene to state levelEditing")
           // the scene state must be switched to levelEditing AFTER the window state was changed to game above, because in enterScene of SquabyScene the default state is set
@@ -563,8 +563,6 @@ SquabySceneBase {
           for (var i in scene.level.waves) {
             sum += scene.level.waves[i].amount
           }
-
-          infinario.track('level_start', {level_id: levelEditor.currentLevelData.levelMetaData.levelId, level_name: levelEditor.currentLevelData.levelMetaData.levelName, monsters: sum})
       }
 
       console.debug("SquabyScene: end of enterScene()")

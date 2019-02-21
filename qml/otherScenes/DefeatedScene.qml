@@ -1,6 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
-import VPlayPlugins.admob 1.0
+import Felgo 3.0
 
 import "../common"
 import "../gameScene/hud"
@@ -76,10 +75,8 @@ SquabySceneBase {
 
     // AdMob is not implemented yet
     AdMobBanner {
-      // the licenseKey of this plugin only works with this demo game; you get licenseKeys for your games for free with a V-Play license (www.v-play.net/license/plugins)
-      licenseKey: "1802219D9DB5B476BA12870EB3692921CF8F51009303CD091C54CAE8FB7526676A24EFC0930449D202C4F71B521EB7EBBFFB388539A557EB6E02E0E8B0C4AD0E94A1FF80B56F577E4CFA9785CA3B9735B705B20A9B59B65B8E1520BC31F662203354DA5471D0A31FF5F41C4755DE2322FE9F47C423C116B28A27183BB8AF36222DD9174E1FEF3ECD3D84FDFA5AA4098E"
       id: admobSmart
-      // Add your own adUnitId here - this one is owned by V-Play and just for demo purposes
+      // Add your own adUnitId here - this one is owned by Felgo and just for demo purposes
       // If you do not have an AdMob account yet, you can create a new one at http://www.google.com/ads/admob/
       // you could also use a different adUnit id for iOS & Android
       adUnitId: "ca-app-pub-9155324456588158/5512522827"
@@ -95,7 +92,7 @@ SquabySceneBase {
 
   Text {
     id: winText
-    text: qsTr("You succeded in ") + (levelEditor.currentLevelNameString.toLowerCase().search("level")<0 ? qsTr("level ") : "" ) +((typeof levelEditor.currentLevelNameString !== "undefined") ? levelEditor.currentLevelNameString : "") +" !"
+    text: qsTr("You succeeded in ") + (levelEditor.currentLevelNameString.toLowerCase().search("level")<0 ? qsTr("level ") : "" ) +((typeof levelEditor.currentLevelNameString !== "undefined") ? levelEditor.currentLevelNameString : "") +" !"
     font.family: jellyFont.name
     color: "white"
     font.pixelSize: 30
@@ -639,7 +636,7 @@ SquabySceneBase {
   function enterScene() {
     state = "entered"
 
-    // infinario tracking
+    // tracking
     if (window.state === 'waveDefeated' || window.state === 'gameover') {
         var sum = 0;
         var n = Math.min(player.wave, scene.level.waves.length)
@@ -656,8 +653,6 @@ SquabySceneBase {
         };
 
         player.addPlayerPropertiesToAnalyticsObject(objectWithPlayerProperties);
-
-        infinario.track('level_end', objectWithPlayerProperties)
     }
 
 

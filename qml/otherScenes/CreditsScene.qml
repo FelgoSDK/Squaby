@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import VPlay 2.0
+import Felgo 3.0
 import "../common/"
 // This scene is only displayed if there is no gamecenter connection
 SquabySceneBase {
@@ -25,7 +25,7 @@ SquabySceneBase {
     spacing: 10
 
     Text {
-      text: qsTr("V-Play Team:\nAlex Leutgoeb\nChristian Feldbacher\nDavid Berger")
+      text: qsTr("Felgo Team:\nAlex Leutgoeb\nChristian Feldbacher\nDavid Berger")
       color: "white"
       font.family: hudFont.name
       font.pixelSize: 13
@@ -123,7 +123,7 @@ SquabySceneBase {
     }
 
     Image {
-      source: "../../assets/img/vplay.png"
+      source: "../../assets/img/felgo.png"
       // the image size is bigger (for hd2 image), so only a single image no multiresimage can be used
       // this scene is not performance sensitive anyway!
       fillMode: Image.PreserveAspectFit
@@ -131,7 +131,7 @@ SquabySceneBase {
 
       MouseArea {
         anchors.fill: parent
-        onClicked: nativeUtils.openUrl("http://v-play.net/showcases/?utm_medium=game&utm_source=squaby&utm_campaign=squaby#squaby");
+        onClicked: nativeUtils.openUrl("https://felgo.com/showcases/?utm_medium=game&utm_source=squaby&utm_campaign=squaby#squaby");
       }
     }
   }
